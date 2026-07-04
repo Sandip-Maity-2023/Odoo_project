@@ -1,0 +1,13 @@
+root:
+
+
+frontend:
+npm create vite@latest .
+
+
+backend:
+npm init -y
+npm install express mongoose dotenv cors
+npm install jsonwebtoken
+
+
