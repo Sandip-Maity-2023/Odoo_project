@@ -1,14 +1,6 @@
-import { useContext } from 'react';
-import { Navigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
-
-const ProtectedRoute = ({ children, adminOnly = false }) => {
-  const { user } = useContext(AuthContext);
-
-  if (!user) return <Navigate to="/login" />;
-  if (adminOnly && user.role !== 'Admin') return <Navigate to="/dashboard" />;
+export default function ProtectedRoute({ children, user = null, adminOnly = false }) {
+  if (!user) return null;
+  if (adminOnly && user.role !== 'Admin') return null;
 
   return children;
-};
-
-export default ProtectedRoute;
+}

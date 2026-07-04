@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
-import logo from './assets/odoo_img.png'; // Ensure this path points to your Odoo logo in the public folder
+import logo from './assets/odoo_img.png';
 
-export default function Auth() {
+export default function Auth({ onLogin = () => {} }) {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  // Odoo permanent logo reference
-  //const ODOO_LOGO_URL = "./assets/odoo_img.png"; // Ensure this path points to your Odoo logo in the public folder
+  const [message, setMessage] = useState('');
 
   const [loginData, setLoginData] = useState({ identifier: '', password: '' });
   const [signUpData, setSignUpData] = useState({
@@ -16,38 +14,77 @@ export default function Auth() {
     email: '',
     phone: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
 
-  const handleLoginSubmit = (e) => {
-    e.preventDefault();
-    console.log("Logging in with ID/Email:", loginData);
+  const readResponse = async (response) => {
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || data.error || 'Request failed');
+    return data;
   };
 
-  const handleSignUpSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
+    setMessage('');
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          loginIdentifier: loginData.identifier,
+          password: loginData.password,
+        }),
+      });
+
+      const data = await readResponse(response);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('userInfo', JSON.stringify(data.user));
+      setMessage('Signed in successfully.');
+      onLogin(data.user);
+    } catch (error) {
+      setMessage(error.message);
+    }
+  };
+
+  const handleSignUpSubmit = async (e) => {
+    e.preventDefault();
+    setMessage('');
+
     if (signUpData.password !== signUpData.confirmPassword) {
-      alert("Passwords do not match!");
+      setMessage('Passwords do not match.');
       return;
     }
-    console.log("Registering Tenant Company:", signUpData);
+
+    try {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(signUpData),
+      });
+
+      const data = await readResponse(response);
+      setMessage(`Admin registered. Employee ID: ${data.employeeId}`);
+      setIsLogin(true);
+    } catch (error) {
+      setMessage(error.message);
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#f3f4f6] flex items-center justify-center p-6 font-sans">
       <div className="bg-white w-full max-w-md p-8 rounded-xl shadow-md border border-gray-200">
-        
-        {/* Permanent Odoo Logo */}
         <div className="w-full flex justify-center mb-8">
-          <img 
-            src={logo} 
-            alt="Odoo Logo" 
-            className="h-10 object-contain"
-          />
+          <img src={logo} alt="Odoo Logo" className="h-10 object-contain" />
         </div>
 
+        {message && (
+          <p className="mb-4 rounded border border-purple-200 bg-purple-50 px-3 py-2 text-sm text-purple-900">
+            {message}
+          </p>
+        )}
+
         {isLogin ? (
-          /* LOGIN FORM */
           <form onSubmit={handleLoginSubmit} className="space-y-5">
             <div>
               <label className="block text-gray-700 font-medium mb-1">Login Id/Email :-</label>
@@ -64,18 +101,18 @@ export default function Auth() {
               <label className="block text-gray-700 font-medium mb-1">Password :-</label>
               <div className="relative">
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   required
-                  className="w-full border border-black rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  className="w-full border border-black rounded px-3 py-2 pr-16 focus:outline-none focus:ring-1 focus:ring-purple-500"
                   value={loginData.password}
                   onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-2.5 text-gray-500"
+                  className="absolute right-3 top-2.5 text-sm text-gray-600"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? "👁️" : "👁️‍🗨️"}
+                  {showPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
             </div>
@@ -93,12 +130,11 @@ export default function Auth() {
                 onClick={() => setIsLogin(false)}
                 className="text-sm text-gray-700 hover:underline"
               >
-                Don’t have an Account? <span className="text-purple-700 font-semibold">Sign Up</span>
+                Don't have an Account? <span className="text-purple-700 font-semibold">Sign Up</span>
               </button>
             </div>
           </form>
         ) : (
-          /* SIGN UP FORM (Logo Upload removed entirely per your instruction) */
           <form onSubmit={handleSignUpSubmit} className="space-y-4">
             <div>
               <label className="block text-gray-700 font-medium mb-1">Company Name :-</label>
@@ -148,18 +184,18 @@ export default function Auth() {
               <label className="block text-gray-700 font-medium mb-1">Password :-</label>
               <div className="relative">
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   required
-                  className="w-full border-b border-black focus:outline-none focus:border-purple-500 py-1"
+                  className="w-full border-b border-black pr-16 focus:outline-none focus:border-purple-500 py-1"
                   value={signUpData.password}
                   onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
                 />
                 <button
                   type="button"
-                  className="absolute right-2 bottom-1 text-gray-500"
+                  className="absolute right-2 bottom-1 text-sm text-gray-600"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? "👁️" : "👁️‍🗨️"}
+                  {showPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
             </div>
@@ -168,18 +204,18 @@ export default function Auth() {
               <label className="block text-gray-700 font-medium mb-1">Confirm Password :-</label>
               <div className="relative">
                 <input
-                  type={showConfirmPassword ? "text" : "password"}
+                  type={showConfirmPassword ? 'text' : 'password'}
                   required
-                  className="w-full border-b border-black focus:outline-none focus:border-purple-500 py-1"
+                  className="w-full border-b border-black pr-16 focus:outline-none focus:border-purple-500 py-1"
                   value={signUpData.confirmPassword}
                   onChange={(e) => setSignUpData({ ...signUpData, confirmPassword: e.target.value })}
                 />
                 <button
                   type="button"
-                  className="absolute right-2 bottom-1 text-gray-500"
+                  className="absolute right-2 bottom-1 text-sm text-gray-600"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
-                  {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
+                  {showConfirmPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
             </div>

@@ -1,8 +1,14 @@
 const User = require('../models/User');
 
 const generateEmployeeID = async (companyName, firstName, lastName) => {
-  const companyInitials = companyName.substring(0, 2).toUpperCase(); // e.g., OI
-  const nameInitials = (firstName.substring(0, 2) + lastName.substring(0, 2)).toUpperCase(); // e.g., JODO
+  const cleanCompany = String(companyName || 'CO').replace(/[^a-z0-9]/gi, '');
+  const cleanFirstName = String(firstName || 'NA').replace(/[^a-z0-9]/gi, '');
+  const cleanLastName = String(lastName || 'XX').replace(/[^a-z0-9]/gi, '');
+  const companyInitials = cleanCompany.substring(0, 2).padEnd(2, 'X').toUpperCase(); // e.g., OI
+  const nameInitials = (
+    cleanFirstName.substring(0, 2).padEnd(2, 'X') +
+    cleanLastName.substring(0, 2).padEnd(2, 'X')
+  ).toUpperCase(); // e.g., JODO
   const year = new Date().getFullYear().toString(); // e.g., 2024
   
   // Find count of users joined this year for the serial number

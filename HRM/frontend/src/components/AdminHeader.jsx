@@ -1,4 +1,4 @@
-const AdminHeader = ({ employees, onSelectEmployee }) => {
+export default function AdminHeader({ employees = [], onSelectEmployee = () => {} }) {
     return (
         <div className="flex items-center gap-4 bg-purple-50 p-2 rounded-md">
             <span className="text-xs font-bold text-purple-800">Viewing As:</span>
@@ -17,4 +17,4 @@ const AdminHeader = ({ employees, onSelectEmployee }) => {
             </select>
         </div>
     );
-};
+}

@@ -4,8 +4,9 @@ const userSchema = new mongoose.Schema({
   employeeId: { type: String, unique: true, required: true },
   email: { type: String, unique: true, required: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ['Admin', 'Employee'], default: 'Employee' },
+  role: { type: String, enum: ['Admin', 'HR', 'Employee'], default: 'Employee' },
   companyName: String,
+  isFirstLogin: { type: Boolean, default: true },
   profile: {
     firstName: String,
     lastName: String,
