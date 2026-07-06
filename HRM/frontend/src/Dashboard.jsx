@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import logo from './assets/odoo_img.png';
 
 const PAGE_SIZE = 8;
