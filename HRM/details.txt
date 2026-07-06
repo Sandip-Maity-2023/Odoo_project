@@ -3,6 +3,7 @@ root:
 
 frontend:
 npm create vite@latest .
+npm install react-icons
 
 
 backend:
