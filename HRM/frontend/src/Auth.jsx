@@ -1,244 +1,191 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import logo from './assets/odoo_img.png';
 
+const API_URL = import.meta.env.VITE_API_URL || '';
+const passwordRule = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+
+const emptySignup = {
+  companyName: '',
+  name: '',
+  email: '',
+  phone: '',
+  password: '',
+  confirmPassword: '',
+  companyLogo: null,
+};
+
+function EyeButton({ visible, onClick }) {
+  return (
+    <button type="button" className="auth-eye" onClick={onClick} aria-label={visible ? 'Hide password' : 'Show password'}>
+      {visible ? 'Hide' : 'Show'}
+    </button>
+  );
+}
+
+function Spinner() {
+  return <span className="spinner" aria-hidden="true" />;
+}
+
 export default function Auth({ onLogin = () => {} }) {
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState('login');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [message, setMessage] = useState('');
-
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [pendingUser, setPendingUser] = useState(null);
   const [loginData, setLoginData] = useState({ identifier: '', password: '' });
-  const [signUpData, setSignUpData] = useState({
-    companyName: '',
-    name: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: '',
-  });
+  const [signUpData, setSignUpData] = useState(emptySignup);
+  const [resetData, setResetData] = useState({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
+
+  const logoPreview = useMemo(() => {
+    if (!signUpData.companyLogo?.data) return null;
+    return `data:${signUpData.companyLogo.mimeType};base64,${signUpData.companyLogo.data}`;
+  }, [signUpData.companyLogo]);
+
+  const showToast = (message, type = 'error') => setToast({ message, type });
 
   const readResponse = async (response) => {
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.message || data.error || 'Request failed');
     return data;
   };
 
-  const handleLoginSubmit = async (e) => {
-    e.preventDefault();
-    setMessage('');
+  const request = async (path, options = {}) => readResponse(await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+  }));
 
+  const validateSignup = () => {
+    if (!signUpData.companyName || !signUpData.name || !signUpData.email || !signUpData.phone || !signUpData.password) return 'All fields are required.';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signUpData.email)) return 'Enter a valid email address.';
+    if (!/^\+?\d{10,15}$/.test(signUpData.phone)) return 'Phone must be 10 to 15 digits.';
+    if (!passwordRule.test(signUpData.password)) return 'Password needs 8+ chars, uppercase, lowercase, number and special character.';
+    if (signUpData.password !== signUpData.confirmPassword) return 'Passwords do not match.';
+    return '';
+  };
+
+  const handleLogoChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return showToast('Please upload an image logo.');
+    if (file.size > 1024 * 1024) return showToast('Logo must be 1MB or smaller.');
+    const reader = new FileReader();
+    reader.onload = () => {
+      const data = String(reader.result).split(',')[1];
+      setSignUpData((current) => ({ ...current, companyLogo: { data, mimeType: file.type, fileName: file.name } }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLoginSubmit = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+    setToast(null);
     try {
-      const response = await fetch('/api/auth/login', {
+      const data = await request('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          loginIdentifier: loginData.identifier,
-          password: loginData.password,
-        }),
+        body: JSON.stringify({ loginIdentifier: loginData.identifier.trim(), password: loginData.password }),
       });
-
-      const data = await readResponse(response);
-      localStorage.setItem('token', data.token);
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      localStorage.setItem('token', data.accessToken);
       localStorage.setItem('userInfo', JSON.stringify(data.user));
-      setMessage('Signed in successfully.');
-      onLogin(data.user);
+      if (data.user.mustChangePassword) {
+        setPendingUser(data.user);
+        setMode('reset');
+        showToast('Please set a new password to continue.', 'success');
+      } else {
+        onLogin(data.user);
+      }
     } catch (error) {
-      setMessage(error.message);
+      showToast(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSignUpSubmit = async (e) => {
-    e.preventDefault();
-    setMessage('');
-
-    if (signUpData.password !== signUpData.confirmPassword) {
-      setMessage('Passwords do not match.');
-      return;
-    }
-
+  const handleSignUpSubmit = async (event) => {
+    event.preventDefault();
+    const validationError = validateSignup();
+    if (validationError) return showToast(validationError);
+    setLoading(true);
+    setToast(null);
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(signUpData),
-      });
-
-      const data = await readResponse(response);
-      setMessage(`Admin registered. Employee ID: ${data.employeeId}`);
-      setIsLogin(true);
+      const data = await request('/api/auth/signup', { method: 'POST', body: JSON.stringify(signUpData) });
+      showToast(`Admin registered. Login ID: ${data.loginId}`, 'success');
+      setSignUpData(emptySignup);
+      setMode('login');
     } catch (error) {
-      setMessage(error.message);
+      showToast(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async (event) => {
+    event.preventDefault();
+    if (!passwordRule.test(resetData.newPassword)) return showToast('New password does not meet the security rules.');
+    if (resetData.newPassword !== resetData.confirmNewPassword) return showToast('New passwords do not match.');
+    setLoading(true);
+    try {
+      const accessToken = localStorage.getItem('accessToken') || localStorage.getItem('token');
+      const data = await request('/api/auth/change-password', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({ currentPassword: resetData.currentPassword, newPassword: resetData.newPassword }),
+      });
+      const updatedUser = { ...(pendingUser || {}), ...data.user, mustChangePassword: false };
+      localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+      showToast('Password changed successfully.', 'success');
+      onLogin(updatedUser);
+    } catch (error) {
+      showToast(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f4f6] flex items-center justify-center p-6 font-sans">
-      <div className="bg-white w-full max-w-md p-8 rounded-xl shadow-md border border-gray-200">
-        <div className="w-full flex justify-center mb-8">
-          <img src={logo} alt="Odoo Logo" className="h-10 object-contain" />
+    <main className="auth-shell">
+      <section className="auth-card">
+        <div className="auth-logo-wrap">
+          <img src={logoPreview || logo} alt="Company logo" className="auth-logo" />
         </div>
 
-        {message && (
-          <p className="mb-4 rounded border border-purple-200 bg-purple-50 px-3 py-2 text-sm text-purple-900">
-            {message}
-          </p>
-        )}
+        {toast && <div className={`auth-toast ${toast.type === 'success' ? 'success' : ''}`}>{toast.message}</div>}
 
-        {isLogin ? (
-          <form onSubmit={handleLoginSubmit} className="space-y-5">
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Login Id/Email :-</label>
-              <input
-                type="text"
-                required
-                className="w-full border border-black rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                value={loginData.identifier}
-                onChange={(e) => setLoginData({ ...loginData, identifier: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Password :-</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  className="w-full border border-black rounded px-3 py-2 pr-16 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                  value={loginData.password}
-                  onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-2.5 text-sm text-gray-600"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-[#d8b4fe] hover:bg-[#c084fc] text-purple-900 font-bold uppercase tracking-wider py-2 rounded transition-colors text-center"
-            >
-              SIGN IN
-            </button>
-
-            <div className="text-center mt-4">
-              <button
-                type="button"
-                onClick={() => setIsLogin(false)}
-                className="text-sm text-gray-700 hover:underline"
-              >
-                Don't have an Account? <span className="text-purple-700 font-semibold">Sign Up</span>
-              </button>
-            </div>
-          </form>
-        ) : (
-          <form onSubmit={handleSignUpSubmit} className="space-y-4">
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Company Name :-</label>
-              <input
-                type="text"
-                required
-                className="w-full border-b border-black focus:outline-none focus:border-purple-500 py-1"
-                value={signUpData.companyName}
-                onChange={(e) => setSignUpData({ ...signUpData, companyName: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Name :-</label>
-              <input
-                type="text"
-                required
-                className="w-full border-b border-black focus:outline-none focus:border-purple-500 py-1"
-                value={signUpData.name}
-                onChange={(e) => setSignUpData({ ...signUpData, name: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Email :-</label>
-              <input
-                type="email"
-                required
-                className="w-full border-b border-black focus:outline-none focus:border-purple-500 py-1"
-                value={signUpData.email}
-                onChange={(e) => setSignUpData({ ...signUpData, email: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Phone :-</label>
-              <input
-                type="tel"
-                required
-                className="w-full border-b border-black focus:outline-none focus:border-purple-500 py-1"
-                value={signUpData.phone}
-                onChange={(e) => setSignUpData({ ...signUpData, phone: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Password :-</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  className="w-full border-b border-black pr-16 focus:outline-none focus:border-purple-500 py-1"
-                  value={signUpData.password}
-                  onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
-                />
-                <button
-                  type="button"
-                  className="absolute right-2 bottom-1 text-sm text-gray-600"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Confirm Password :-</label>
-              <div className="relative">
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  required
-                  className="w-full border-b border-black pr-16 focus:outline-none focus:border-purple-500 py-1"
-                  value={signUpData.confirmPassword}
-                  onChange={(e) => setSignUpData({ ...signUpData, confirmPassword: e.target.value })}
-                />
-                <button
-                  type="button"
-                  className="absolute right-2 bottom-1 text-sm text-gray-600"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? 'Hide' : 'Show'}
-                </button>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-[#d8b4fe] hover:bg-[#c084fc] text-purple-900 font-bold py-2 rounded mt-4 transition-colors"
-            >
-              Sign Up
-            </button>
-
-            <div className="text-center mt-3">
-              <button
-                type="button"
-                onClick={() => setIsLogin(true)}
-                className="text-xs text-gray-700 hover:underline"
-              >
-                Already have an account? <span className="text-purple-700 font-semibold">Sign In</span>
-              </button>
-            </div>
+        {mode === 'login' && (
+          <form onSubmit={handleLoginSubmit} className="auth-form">
+            <label>Login ID, Employee ID or Email<input value={loginData.identifier} onChange={(e) => setLoginData({ ...loginData, identifier: e.target.value })} required autoComplete="username" /></label>
+            <label>Password<div className="password-row"><input type={showPassword ? 'text' : 'password'} value={loginData.password} onChange={(e) => setLoginData({ ...loginData, password: e.target.value })} required autoComplete="current-password" /><EyeButton visible={showPassword} onClick={() => setShowPassword((v) => !v)} /></div></label>
+            <button className="primary-btn" disabled={loading}>{loading && <Spinner />} Sign In</button>
+            <button type="button" className="text-link" onClick={() => { setMode('signup'); setToast(null); }}>Create company admin account</button>
           </form>
         )}
-      </div>
-    </div>
+
+        {mode === 'signup' && (
+          <form onSubmit={handleSignUpSubmit} className="auth-form">
+            <label>Company Name<input value={signUpData.companyName} onChange={(e) => setSignUpData({ ...signUpData, companyName: e.target.value })} required /></label>
+            <label className="upload-box"><span>Upload Company Logo</span><input type="file" accept="image/*" onChange={handleLogoChange} />{logoPreview && <img src={logoPreview} alt="Logo preview" />}</label>
+            <label>Employee Name<input value={signUpData.name} onChange={(e) => setSignUpData({ ...signUpData, name: e.target.value })} required /></label>
+            <label>Email<input type="email" value={signUpData.email} onChange={(e) => setSignUpData({ ...signUpData, email: e.target.value })} required /></label>
+            <label>Phone Number<input value={signUpData.phone} onChange={(e) => setSignUpData({ ...signUpData, phone: e.target.value.replace(/[^\d+]/g, '') })} required /></label>
+            <label>Password<div className="password-row"><input type={showPassword ? 'text' : 'password'} value={signUpData.password} onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })} required /><EyeButton visible={showPassword} onClick={() => setShowPassword((v) => !v)} /></div></label>
+            <label>Confirm Password<div className="password-row"><input type={showConfirmPassword ? 'text' : 'password'} value={signUpData.confirmPassword} onChange={(e) => setSignUpData({ ...signUpData, confirmPassword: e.target.value })} required /><EyeButton visible={showConfirmPassword} onClick={() => setShowConfirmPassword((v) => !v)} /></div></label>
+            <button className="primary-btn" disabled={loading}>{loading && <Spinner />} Create Account</button>
+            <button type="button" className="text-link" onClick={() => { setMode('login'); setToast(null); }}>Back to Sign In</button>
+          </form>
+        )}
+
+        {mode === 'reset' && (
+          <form onSubmit={handlePasswordReset} className="auth-form">
+            <label>Temporary Password<input type="password" value={resetData.currentPassword} onChange={(e) => setResetData({ ...resetData, currentPassword: e.target.value })} required /></label>
+            <label>New Password<input type="password" value={resetData.newPassword} onChange={(e) => setResetData({ ...resetData, newPassword: e.target.value })} required /></label>
+            <label>Confirm New Password<input type="password" value={resetData.confirmNewPassword} onChange={(e) => setResetData({ ...resetData, confirmNewPassword: e.target.value })} required /></label>
+            <button className="primary-btn" disabled={loading}>{loading && <Spinner />} Change Password</button>
+          </form>
+        )}
+      </section>
+    </main>
   );
 }

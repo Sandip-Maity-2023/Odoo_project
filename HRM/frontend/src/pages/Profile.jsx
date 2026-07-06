@@ -1,176 +1,252 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import logo from '../assets/odoo_img.png';
 
-const salaryRows = [
-  ['Month Wage', 'Rs 50,000'],
-  ['Yearly Wage', 'Rs 6,00,000'],
-  ['Basic Salary', 'Rs 25,000'],
-  ['HRA', 'Rs 12,500'],
-  ['Standard Allowance', 'Rs 4,167'],
-  ['Performance Bonus', 'Rs 2,092.50'],
-  ['Leave Travel Allowance', 'Rs 2,092.50'],
-  ['Fixed Allowance', 'Rs 2,918'],
-  ['PF Employee', 'Rs 3,000'],
-  ['PF Employer', 'Rs 3,000'],
-  ['Professional Tax', 'Rs 200 / month'],
-];
+const avatarFor = (name) => `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(name || 'Employee')}`;
+const currency = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 });
 
-const securityRows = [
-  ['Account No', 'XXXXXXXX5432'],
-  ['Bank Name', 'State Bank of India'],
-  ['IFSC', 'SBIN0001234'],
-  ['PAN', 'ABCDE1234F'],
-  ['UAN', '100XXXXXXXXX'],
-  ['Emp Code', 'OI-0042'],
-];
+const resumeFields = ['About Me', 'Work Experience', 'Education', 'Projects', 'Skills', 'Certifications', 'Languages', 'Interests & Hobbies'];
+const privateFields = ['Date of Birth', 'Gender', 'Marital Status', 'Nationality', 'Personal Email', 'Residential Address', 'Date of Joining', 'Employee Code', 'Bank Name', 'Account Number', 'IFSC Code', 'PAN Number', 'UAN Number'];
+
+const defaultSalaryConfig = {
+  wageType: 'Fixed Wage',
+  monthlyWage: 50000,
+  workingDays: 5,
+  breakHours: 1,
+  basicPercent: 50,
+  hraPercentOfBasic: 50,
+  standardPercent: 8.334,
+  performancePercent: 4.165,
+  ltaPercent: 4.165,
+  pfPercent: 12,
+  professionalTax: 200,
+};
+
+function calculateSalary(config) {
+  const monthly = Number(config.monthlyWage) || 0;
+  const basic = monthly * (Number(config.basicPercent) || 0) / 100;
+  const hra = basic * (Number(config.hraPercentOfBasic) || 0) / 100;
+  const standard = monthly * (Number(config.standardPercent) || 0) / 100;
+  const performance = monthly * (Number(config.performancePercent) || 0) / 100;
+  const lta = monthly * (Number(config.ltaPercent) || 0) / 100;
+  const fixed = monthly - basic - hra - standard - performance - lta;
+  const pf = basic * (Number(config.pfPercent) || 0) / 100;
+  const gross = basic + hra + standard + performance + lta + fixed;
+  const net = gross - (Number(config.professionalTax) || 0) - pf;
+
+  return {
+    monthly,
+    yearly: monthly * 12,
+    components: [
+      ['Basic Salary', basic, `${config.basicPercent}% of monthly wage`],
+      ['House Rent Allowance', hra, `${config.hraPercentOfBasic}% of Basic`],
+      ['Standard Allowance', standard, `${config.standardPercent}% of monthly wage`],
+      ['Performance Bonus', performance, `${config.performancePercent}% of monthly wage`],
+      ['Leave Travel Allowance', lta, `${config.ltaPercent}% of monthly wage`],
+      ['Fixed Allowance', fixed, 'Remaining balance'],
+    ],
+    pf,
+    gross,
+    net,
+  };
+}
+
+function FieldGrid({ fields, values, onChange, editable, textarea = false }) {
+  return (
+    <div className="ems-profile-grid">
+      {fields.map((field) => (
+        <label key={field}>
+          <span>{field}</span>
+          {textarea ? (
+            <textarea value={values[field] || ''} onChange={(event) => onChange(field, event.target.value)} disabled={!editable} />
+          ) : (
+            <input value={values[field] || ''} onChange={(event) => onChange(field, event.target.value)} disabled={!editable} />
+          )}
+        </label>
+      ))}
+    </div>
+  );
+}
+
+function SalaryTab({ config, setConfig }) {
+  const salary = useMemo(() => calculateSalary(config), [config]);
+  const update = (key, value) => setConfig((current) => ({ ...current, [key]: value }));
+
+  return (
+    <div className="ems-salary-layout">
+      <section className="ems-card">
+        <h2>Salary Configuration</h2>
+        <div className="ems-form-grid">
+          <label>Wage Type<select value={config.wageType} onChange={(event) => update('wageType', event.target.value)}><option>Fixed Wage</option></select></label>
+          <label>Monthly Wage<input type="number" value={config.monthlyWage} onChange={(event) => update('monthlyWage', event.target.value)} /></label>
+          <label>Working Days per Week<input type="number" value={config.workingDays} onChange={(event) => update('workingDays', event.target.value)} /></label>
+          <label>Break Hours<input type="number" value={config.breakHours} onChange={(event) => update('breakHours', event.target.value)} /></label>
+          <label>Basic %<input type="number" value={config.basicPercent} onChange={(event) => update('basicPercent', event.target.value)} /></label>
+          <label>HRA % of Basic<input type="number" value={config.hraPercentOfBasic} onChange={(event) => update('hraPercentOfBasic', event.target.value)} /></label>
+          <label>Standard %<input type="number" value={config.standardPercent} onChange={(event) => update('standardPercent', event.target.value)} /></label>
+          <label>Performance %<input type="number" value={config.performancePercent} onChange={(event) => update('performancePercent', event.target.value)} /></label>
+          <label>LTA %<input type="number" value={config.ltaPercent} onChange={(event) => update('ltaPercent', event.target.value)} /></label>
+          <label>PF %<input type="number" value={config.pfPercent} onChange={(event) => update('pfPercent', event.target.value)} /></label>
+          <label>Professional Tax<input type="number" value={config.professionalTax} onChange={(event) => update('professionalTax', event.target.value)} /></label>
+        </div>
+      </section>
+
+      <section className="ems-card">
+        <h2>Salary Information</h2>
+        <div className="ems-pay-summary">
+          <div><span>Monthly Wage</span><strong>{currency.format(salary.monthly)}</strong></div>
+          <div><span>Yearly Wage</span><strong>{currency.format(salary.yearly)}</strong></div>
+          <div><span>Net Monthly</span><strong>{currency.format(salary.net)}</strong></div>
+        </div>
+        <div className="ems-table-wrap">
+          <table className="ems-table">
+            <thead><tr><th>Component</th><th>Amount</th><th>Formula</th></tr></thead>
+            <tbody>
+              {salary.components.map(([name, amount, formula]) => <tr key={name}><td>{name}</td><td>{currency.format(amount)}</td><td>{formula}</td></tr>)}
+              <tr><td>Gross Salary</td><td>{currency.format(salary.gross)}</td><td>Total equals monthly wage</td></tr>
+              <tr><td>Employee PF</td><td>{currency.format(salary.pf)}</td><td>{config.pfPercent}% of Basic</td></tr>
+              <tr><td>Employer PF</td><td>{currency.format(salary.pf)}</td><td>{config.pfPercent}% of Basic</td></tr>
+              <tr><td>Professional Tax</td><td>{currency.format(config.professionalTax)}</td><td>Monthly deduction</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  );
+}
 
 export default function Profile({ currentUser = {}, employee = null, onBack, onLogout }) {
-  const [activeTab, setActiveTab] = useState('Resume');
-  const [saveMessage, setSaveMessage] = useState('');
-  const isAdmin = currentUser.role === 'Admin';
   const profile = employee || {
     name: currentUser.name || 'My Profile',
-    employeeId: currentUser.employeeId || 'EMP-001',
-    jobPosition: isAdmin ? 'Administrator' : 'Employee',
+    employeeId: currentUser.employeeId || currentUser.loginId || 'EMP-001',
+    jobPosition: currentUser.role || 'Employee',
+    department: 'General',
     email: currentUser.email || 'employee@company.com',
-    mobile: '+91 98765 43210',
-    avatar: `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(currentUser.name || 'User')}`,
+    mobile: currentUser.phone || '+91 00000 00000',
+    company: 'Odoo India',
+    manager: 'Manager',
+    location: 'Office',
+    avatar: avatarFor(currentUser.name),
   };
-  const savedProfile = JSON.parse(localStorage.getItem(`profile:${profile.employeeId}`) || '{}');
-  const [resume, setResume] = useState(savedProfile.resume || {
-    About: employee?.about || '',
-    'What I love about my job': employee?.jobLove || '',
-    Interests: employee?.interests || '',
-    Skills: employee?.skills || '',
-    Certification: employee?.certification || '',
-  });
-  const [privateInfo, setPrivateInfo] = useState(savedProfile.privateInfo || {
-    DOB: '18-06-2004',
-    Address: 'Kolkata, West Bengal',
-    Nationality: 'Indian',
-    'Personal Email': 'personal@gmail.com',
+
+  const isAdmin = currentUser.role === 'Admin';
+  const isOwner = profile.employeeId === (currentUser.employeeId || currentUser.loginId);
+  const canEditProfile = isAdmin || isOwner;
+  const [activeTab, setActiveTab] = useState('Resume');
+  const [toast, setToast] = useState('');
+  const [avatarPreview, setAvatarPreview] = useState(profile.avatar || avatarFor(profile.name));
+  const [resume, setResume] = useState(Object.fromEntries(resumeFields.map((field) => [field, ''])));
+  const [privateInfo, setPrivateInfo] = useState({
+    'Date of Birth': '18-06-2004',
     Gender: 'Male',
     'Marital Status': 'Single',
+    Nationality: 'Indian',
+    'Personal Email': 'personal@example.com',
+    'Residential Address': 'Kolkata, West Bengal',
     'Date of Joining': '01-06-2026',
+    'Employee Code': profile.employeeId,
+    'Bank Name': 'State Bank of India',
+    'Account Number': 'XXXXXXXX5432',
+    'IFSC Code': 'SBIN0001234',
+    'PAN Number': 'ABCDE1234F',
+    'UAN Number': '100XXXXXXXXX',
   });
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [salaryConfig, setSalaryConfig] = useState(defaultSalaryConfig);
 
-  const saveProfileDetails = () => {
-    localStorage.setItem(`profile:${profile.employeeId}`, JSON.stringify({ resume, privateInfo }));
-    setSaveMessage('Profile details saved.');
+  const tabs = ['Resume', 'Private Information', 'Security', ...(isAdmin ? ['Salary Information'] : [])];
+  const updateResume = (key, value) => setResume((current) => ({ ...current, [key]: value }));
+  const updatePrivate = (key, value) => setPrivateInfo((current) => ({ ...current, [key]: value }));
+
+  const handleAvatar = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/') || file.size > 1024 * 1024) {
+      setToast('Please upload an image under 1MB.');
+      return;
+    }
+    setAvatarPreview(URL.createObjectURL(file));
+    setToast('Profile picture preview updated.');
+  };
+
+  const save = () => setToast('Profile changes saved locally.');
+
+  const changePassword = (event) => {
+    event.preventDefault();
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) return setToast('New password and confirm password must match.');
+    setToast('Password change request is ready to submit.');
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 font-sans text-gray-900">
-      <header className="flex items-center justify-between border-b border-gray-200 bg-white px-5 py-3 shadow-sm">
-        <div className="flex items-center gap-8">
-          <button onClick={onBack} className="text-sm font-semibold text-gray-600 hover:text-purple-700">&lt; Back</button>
-          <img src={logo} alt="Company Logo" className="h-8 object-contain" />
-          <nav className="hidden gap-5 text-sm font-semibold text-gray-600 md:flex">
-            <button>Employees</button>
-            <button>Attendance</button>
-            <button>Time Off</button>
-          </nav>
+    <div className="ems-shell">
+      <header className="ems-topbar">
+        <div className="ems-brand">
+          <button className="ems-back" onClick={onBack}>Back</button>
+          <img src={logo} alt="Company Logo" />
+          <nav><button className="active">Profile</button></nav>
         </div>
-        <button onClick={onLogout} className="rounded-md border border-gray-200 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50">Log Out</button>
+        <button className="ems-secondary" onClick={onLogout}>Logout</button>
       </header>
 
-      <main className="mx-auto max-w-5xl p-5">
-        <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-          <div className="flex flex-col gap-5 border-b border-gray-200 pb-5 md:flex-row">
-            <img src={profile.avatar} alt={profile.name} className="h-24 w-24 rounded-full border border-gray-200 bg-gray-50" />
-            <div className="grid flex-1 gap-3 sm:grid-cols-2">
-              <div>
-                <h1 className="text-2xl font-bold">{profile.name}</h1>
-                <p className="text-sm text-gray-500">{profile.jobPosition}</p>
-              </div>
-              <div className="grid gap-1 text-sm text-gray-600">
-                <p><span className="font-semibold text-gray-800">Login ID:</span> {profile.employeeId}</p>
-                <p><span className="font-semibold text-gray-800">Email:</span> {profile.email}</p>
-                <p><span className="font-semibold text-gray-800">Mobile:</span> {profile.mobile}</p>
-              </div>
+      <main className="ems-page">
+        {toast && <div className="ems-toast success">{toast}</div>}
+        <section className="ems-profile-header ems-card">
+          <div className="ems-photo-wrap">
+            <img src={avatarPreview} alt={profile.name} />
+            {canEditProfile && <label className="ems-upload-mini">Edit Picture<input type="file" accept="image/*" onChange={handleAvatar} /></label>}
+          </div>
+          <div>
+            <h1>{profile.name}</h1>
+            <p>{profile.jobPosition || 'Employee'}</p>
+            <div className="ems-profile-facts">
+              <span>Login ID: {profile.employeeId}</span>
+              <span>Email: {profile.email}</span>
+              <span>Mobile: {profile.mobile}</span>
+              <span>Company: {profile.company || 'Odoo India'}</span>
+              <span>Department: {profile.department || 'General'}</span>
+              <span>Manager: {profile.manager || 'Manager'}</span>
+              <span>Location: {profile.location || 'Office'}</span>
             </div>
           </div>
+        </section>
 
-          <div className="mt-5 flex gap-2 overflow-x-auto border-b border-gray-200">
-            {['Resume', 'Private Info', 'Salary Info', 'Security'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`whitespace-nowrap border-b-2 px-4 py-2 text-sm font-semibold ${activeTab === tab ? 'border-purple-600 text-purple-700' : 'border-transparent text-gray-500'}`}
-              >
-                {tab}
-              </button>
-            ))}
+        <section className="ems-card">
+          <div className="ems-tabs">
+            {tabs.map((tab) => <button key={tab} className={activeTab === tab ? 'active' : ''} onClick={() => setActiveTab(tab)}>{tab}</button>)}
           </div>
 
-          {saveMessage && <p className="mt-4 rounded border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">{saveMessage}</p>}
+          {activeTab === 'Resume' && (
+            <>
+              <FieldGrid fields={resumeFields} values={resume} onChange={updateResume} editable={canEditProfile} textarea />
+              {canEditProfile && <button className="ems-primary" onClick={save}>Save Resume</button>}
+            </>
+          )}
 
-          <div className="min-h-72 py-5">
-            {activeTab === 'Resume' && (
-              <div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {Object.keys(resume).map((field) => (
-                    <label key={field} className="grid gap-1 text-sm font-semibold text-gray-700">
-                      {field}
-                      <textarea
-                        value={resume[field]}
-                        onChange={(event) => setResume({ ...resume, [field]: event.target.value })}
-                        className="min-h-24 resize-none rounded-md border border-gray-200 bg-white p-3 font-normal text-gray-700 outline-none focus:border-purple-400"
-                        placeholder={`Add ${field.toLowerCase()}`}
-                      />
-                    </label>
-                  ))}
-                </div>
-                <button onClick={saveProfileDetails} className="mt-5 rounded-md bg-purple-600 px-4 py-2 text-sm font-bold text-white hover:bg-purple-700">Save Resume</button>
+          {activeTab === 'Private Information' && (
+            <>
+              <FieldGrid fields={privateFields} values={privateInfo} onChange={updatePrivate} editable={canEditProfile} />
+              {canEditProfile && <button className="ems-primary" onClick={save}>Save Private Information</button>}
+            </>
+          )}
+
+          {activeTab === 'Security' && (
+            <div className="ems-security-layout">
+              <form className="ems-card subtle" onSubmit={changePassword}>
+                <h2>Change Password</h2>
+                <label>Current Password<input type="password" value={passwordForm.currentPassword} onChange={(event) => setPasswordForm({ ...passwordForm, currentPassword: event.target.value })} required /></label>
+                <label>New Password<input type="password" value={passwordForm.newPassword} onChange={(event) => setPasswordForm({ ...passwordForm, newPassword: event.target.value })} required /></label>
+                <label>Confirm Password<input type="password" value={passwordForm.confirmPassword} onChange={(event) => setPasswordForm({ ...passwordForm, confirmPassword: event.target.value })} required /></label>
+                <button className="ems-primary">Update Password</button>
+              </form>
+              <div className="ems-card subtle">
+                <h2>Account Security</h2>
+                <p>Two-Factor Authentication: Optional</p>
+                <p>Last Login: Today, 09:30 AM</p>
+                <p>Active Sessions: Current browser session</p>
               </div>
-            )}
+            </div>
+          )}
 
-            {activeTab === 'Private Info' && (
-              <div>
-                <div className="grid gap-3 text-sm md:grid-cols-2">
-                  {Object.entries(privateInfo).map(([label, value]) => (
-                    <label key={label} className="grid gap-1 font-semibold text-gray-700">
-                      {label}
-                      <input
-                        value={value}
-                        onChange={(event) => setPrivateInfo({ ...privateInfo, [label]: event.target.value })}
-                        className="rounded-md border border-gray-200 px-3 py-2 font-normal outline-none focus:border-purple-400"
-                      />
-                    </label>
-                  ))}
-                </div>
-                <button onClick={saveProfileDetails} className="mt-5 rounded-md bg-purple-600 px-4 py-2 text-sm font-bold text-white hover:bg-purple-700">Save Private Info</button>
-              </div>
-            )}
-
-            {activeTab === 'Salary Info' && (
-              isAdmin ? (
-                <div className="grid gap-2 md:grid-cols-2">
-                  {salaryRows.map(([label, value]) => (
-                    <div key={label} className="flex justify-between gap-4 rounded-md border border-gray-100 px-3 py-2 text-sm">
-                      <span className="text-gray-500">{label}</span>
-                      <span className="font-semibold">{value}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-md border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
-                  Salary information is restricted to Admin users.
-                </div>
-              )
-            )}
-
-            {activeTab === 'Security' && (
-              <div className="grid gap-2 md:grid-cols-2">
-                {securityRows.map(([label, value]) => (
-                  <div key={label} className="flex justify-between gap-4 rounded-md border border-gray-100 px-3 py-2 text-sm">
-                    <span className="text-gray-500">{label}</span>
-                    <span className="font-mono font-semibold">{value}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          {activeTab === 'Salary Information' && isAdmin && <SalaryTab config={salaryConfig} setConfig={setSalaryConfig} />}
         </section>
       </main>
     </div>

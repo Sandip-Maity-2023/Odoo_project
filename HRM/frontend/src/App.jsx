@@ -19,6 +19,23 @@ function App() {
   const [view, setView] = useState('dashboard');
   const [selectedEmployee, setSelectedEmployee] = useState(null);
 
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
+    if (!token) return;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expiresAt = payload.exp * 1000;
+      if (Date.now() >= expiresAt) {
+        handleLogout();
+        return;
+      }
+      const timer = window.setTimeout(handleLogout, expiresAt - Date.now());
+      return () => window.clearTimeout(timer);
+    } catch {
+      handleLogout();
+    }
+  }, [user]);
+
   const handleLogin = (loggedInUser) => {
     setUser(loggedInUser);
     setView('dashboard');
@@ -26,6 +43,8 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('userInfo');
     setUser(null);
     setSelectedEmployee(null);
