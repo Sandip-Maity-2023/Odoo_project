@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import logo from './assets/odoo_img.png';
+import {FaEye, FaEyeSlash} from 'react-icons/fa';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const passwordRule = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
@@ -17,7 +18,7 @@ const emptySignup = {
 function EyeButton({ visible, onClick }) {
   return (
     <button type="button" className="auth-eye" onClick={onClick} aria-label={visible ? 'Hide password' : 'Show password'}>
-      {visible ? 'Hide' : 'Show'}
+      {visible ? <FaEyeSlash /> : <FaEye />}
     </button>
   );
 }

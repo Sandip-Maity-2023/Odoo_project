@@ -3,17 +3,18 @@ import logo from './assets/odoo_img.png';
 
 const PAGE_SIZE = 8;
 const API_URL = import.meta.env.VITE_API_URL || '';
+const DEPARTMENT_OPTIONS = ['Engineering', 'People', 'Finance', 'Quality', 'Product', 'Platform', 'Operations', 'Sales', 'Marketing', 'Support', 'Administration', 'General'];
 
 const seedEmployees = [
-  { id: 1, name: 'Shibashis Das', employeeId: 'OISHDA20260001', jobPosition: 'Frontend Developer', department: 'Engineering', email: 'shibashis@company.com', mobile: '+91 98765 43210', company: 'Odoo India', manager: 'Ananya Sen', location: 'Kolkata', status: 'present' },
-  { id: 2, name: 'Sreejith S', employeeId: 'OISRSX20260002', jobPosition: 'HR Executive', department: 'People', email: 'sreejith@company.com', mobile: '+91 98765 43211', company: 'Odoo India', manager: 'Ananya Sen', location: 'Bengaluru', status: 'leave' },
-  { id: 3, name: 'Rohit Kumar', employeeId: 'OIROKU20260003', jobPosition: 'Backend Developer', department: 'Engineering', email: 'rohit@company.com', mobile: '+91 98765 43212', company: 'Odoo India', manager: 'Shibashis Das', location: 'Hyderabad', status: 'absent' },
-  { id: 4, name: 'Ananya Sen', employeeId: 'OIANSE20260004', jobPosition: 'Payroll Analyst', department: 'Finance', email: 'ananya@company.com', mobile: '+91 98765 43213', company: 'Odoo India', manager: 'Rohit Kumar', location: 'Mumbai', status: 'present' },
-  { id: 5, name: 'Nisha Verma', employeeId: 'OINIVE20260005', jobPosition: 'QA Engineer', department: 'Quality', email: 'nisha@company.com', mobile: '+91 98765 43214', company: 'Odoo India', manager: 'Shibashis Das', location: 'Pune', status: 'absent' },
-  { id: 6, name: 'Arjun Mehta', employeeId: 'OIARME20260006', jobPosition: 'Product Designer', department: 'Product', email: 'arjun@company.com', mobile: '+91 98765 43215', company: 'Odoo India', manager: 'Ananya Sen', location: 'Delhi', status: 'present' },
-  { id: 7, name: 'Priya Nair', employeeId: 'OIPRNA20260007', jobPosition: 'Recruiter', department: 'People', email: 'priya@company.com', mobile: '+91 98765 43216', company: 'Odoo India', manager: 'Sreejith S', location: 'Kochi', status: 'leave' },
-  { id: 8, name: 'Kabir Khan', employeeId: 'OIKAKH20260008', jobPosition: 'DevOps Engineer', department: 'Platform', email: 'kabir@company.com', mobile: '+91 98765 43217', company: 'Odoo India', manager: 'Rohit Kumar', location: 'Noida', status: 'absent' },
-  { id: 9, name: 'Meera Iyer', employeeId: 'OIMEIY20260009', jobPosition: 'Business Analyst', department: 'Operations', email: 'meera@company.com', mobile: '+91 98765 43218', company: 'Odoo India', manager: 'Ananya Sen', location: 'Chennai', status: 'present' },
+  { id: 1, name: 'Sandip Maity', employeeId: 'OISAMA20260001', jobPosition: 'Frontend Developer', department: 'Engineering', email: 'sandip.maity@odoo.in', mobile: '+91 98765 43210', company: 'Odoo India', manager: 'Ananya Sen', location: 'Kolkata', status: 'present' },
+  { id: 2, name: 'Prathama Pal', employeeId: 'OIPRPA20260002', jobPosition: 'HR Executive', department: 'People', email: 'prathama.pal@odoo.in', mobile: '+91 98765 43211', company: 'Odoo India', manager: 'Ananya Sen', location: 'Bengaluru', status: 'leave' },
+  { id: 3, name: 'Rohit Kumar', employeeId: 'OIROKU20260003', jobPosition: 'Backend Developer', department: 'Engineering', email: 'rohit@odoo.com', mobile: '+91 98765 43212', company: 'Odoo India', manager: 'Shibashis Das', location: 'Hyderabad', status: 'absent' },
+  { id: 4, name: 'Ananya Das', employeeId: 'OIANDA20260004', jobPosition: 'Payroll Analyst', department: 'Finance', email: 'ananya@odoo.com', mobile: '+91 98765 43213', company: 'Odoo India', manager: 'Rohit Kumar', location: 'Mumbai', status: 'present' },
+  { id: 5, name: 'Sounak Ghosh', employeeId: 'OISODA20260005', jobPosition: 'QA Engineer', department: 'Quality', email: 'nisha@odoo.com', mobile: '+91 98765 43214', company: 'Odoo India', manager: 'Shibashis Das', location: 'Pune', status: 'absent' },
+  { id: 6, name: 'Jyotirmoy Das', employeeId: 'OIJYDA20260006', jobPosition: 'Product Designer', department: 'Product', email: 'arjun@odoo.com', mobile: '+91 98765 43215', company: 'Odoo India', manager: 'Ananya Sen', location: 'Delhi', status: 'present' },
+  { id: 7, name: 'Suman Mondal', employeeId: 'OISUMO20260007', jobPosition: 'Recruiter', department: 'People', email: 'priya@odoo.com', mobile: '+91 98765 43216', company: 'Odoo India', manager: 'Sreejith S', location: 'Kochi', status: 'leave' },
+  { id: 8, name: 'Sk Nahid Faiyaz', employeeId: 'OISKFA20260008', jobPosition: 'DevOps Engineer', department: 'Platform', email: 'kabir@odoo.com', mobile: '+91 98765 43217', company: 'Odoo India', manager: 'Rohit Kumar', location: 'Noida', status: 'absent' },
+  { id: 9, name: 'Pratasha Basak', employeeId: 'OIPRBA20260009', jobPosition: 'Business Analyst', department: 'Operations', email: 'meera@odoo.com', mobile: '+91 98765 43218', company: 'Odoo India', manager: 'Ananya Sen', location: 'Chennai', status: 'present' },
 ];
 
 const statusMeta = {
@@ -77,6 +78,12 @@ const toUiAllocation = (allocation) => ({
   usedDays: allocation.usedDays,
   remainingDays: allocation.remainingDays,
 });
+const apiRequest = async (path, options = {}) => {
+  const response = await fetch(`${API_URL}${path}`, { ...options, headers: { ...authHeaders(), ...(options.headers || {}) } });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.message || data.error || 'Request failed');
+  return data;
+};
 
 function ShellNav({ activeModule, onModuleChange, currentUser, onOpenProfile, onLogout }) {
   const [open, setOpen] = useState(false);
@@ -96,7 +103,7 @@ function ShellNav({ activeModule, onModuleChange, currentUser, onOpenProfile, on
       </div>
       <div className="ems-avatar-menu">
         <button className="ems-avatar-button" onClick={() => setOpen((value) => !value)} aria-label="Open user menu">
-          <img src={avatarFor(currentUser.name)} alt={currentUser.name || 'User'} />
+          <img src={currentUser.avatar || avatarFor(currentUser.name)} alt={currentUser.name || 'User'} />
         </button>
         {open && (
           <div className="ems-menu-card">
@@ -117,9 +124,9 @@ function EmployeeCard({ employee, onSelectEmployee }) {
   const status = statusMeta[employee.status] || statusMeta.absent;
 
   return (
-    <button className="ems-employee-card" onClick={() => onSelectEmployee({ ...employee, avatar: avatarFor(employee.name) })}>
+    <button className="ems-employee-card" onClick={() => onSelectEmployee({ ...employee, avatar: employee.avatar || avatarFor(employee.name) })}>
       <span className={status.className} title={status.label}>{status.icon}</span>
-      <img src={avatarFor(employee.name)} alt={employee.name} />
+      <img src={employee.avatar || avatarFor(employee.name)} alt={employee.name} />
       <strong>{employee.name}</strong>
       <span>{employee.jobPosition || 'Employee'}</span>
       <small>{employee.department}</small>
@@ -128,7 +135,7 @@ function EmployeeCard({ employee, onSelectEmployee }) {
   );
 }
 
-function EmployeesView({ employees, canManageEmployees, onSelectEmployee, onNewEmployee, toast }) {
+function EmployeesView({ employees, canManageEmployees, onSelectEmployee, onNewEmployee, onDeleteEmployee, toast }) {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('all');
   const [page, setPage] = useState(1);
@@ -174,7 +181,12 @@ function EmployeesView({ employees, canManageEmployees, onSelectEmployee, onNewE
           </select>
         </div>
         <div className="ems-grid">
-          {pageItems.map((employee) => <EmployeeCard key={employee.employeeId} employee={employee} onSelectEmployee={onSelectEmployee} />)}
+          {pageItems.map((employee) => (
+            <div key={employee.employeeId} className="ems-employee-tile">
+              <EmployeeCard employee={employee} onSelectEmployee={onSelectEmployee} />
+              {canManageEmployees && <button className="ems-danger ems-remove-employee" onClick={() => onDeleteEmployee(employee)}>Remove</button>}
+            </div>
+          ))}
         </div>
         {!pageItems.length && <p className="ems-empty">No employees match your filters.</p>}
         <div className="ems-pagination">
@@ -188,8 +200,8 @@ function EmployeesView({ employees, canManageEmployees, onSelectEmployee, onNewE
 }
 
 function AttendanceView({ currentUser, employees, attendanceRows, attendanceStatus, checkInTime, lastDuration, onCheckIn, onCheckOut, isPeopleTeam }) {
-  const [month, setMonth] = useState('2026-07');
-  const [day, setDay] = useState(toInputDate(new Date('2026-07-06')));
+  const [month, setMonth] = useState(toMonthValue());
+  const [day, setDay] = useState(toInputDate());
   const [query, setQuery] = useState('');
   const [department, setDepartment] = useState('all');
   const [status, setStatus] = useState('all');
@@ -227,13 +239,18 @@ function AttendanceView({ currentUser, employees, attendanceRows, attendanceStat
     setPage(1);
   };
 
-  const exportCsv = () => {
+  const attendanceExportRows = () => {
     const headers = isPeopleTeam
       ? ['Employee Name', 'Employee ID', 'Department', 'Date', 'Check-In', 'Check-Out', 'Break Time', 'Work Hours', 'Extra Hours', 'Status']
       : ['Date', 'Check-In', 'Check-Out', 'Break Duration', 'Work Hours', 'Overtime', 'Status'];
     const csvRows = rows.map((row) => isPeopleTeam
       ? [row.name, row.employeeId, row.department, row.date, row.checkIn, row.checkOut, hoursLabel(row.breakHours), hoursLabel(row.workHours), hoursLabel(row.extraHours), row.status]
       : [row.date, row.checkIn, row.checkOut, hoursLabel(row.breakHours), hoursLabel(row.workHours), hoursLabel(row.extraHours), row.status]);
+    return { headers, csvRows };
+  };
+
+  const exportCsv = () => {
+    const { headers, csvRows } = attendanceExportRows();
     const csv = [headers, ...csvRows].map((items) => items.map((item) => `"${String(item).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -242,6 +259,27 @@ function AttendanceView({ currentUser, employees, attendanceRows, attendanceStat
     link.download = `attendance-${isPeopleTeam ? day : month}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const exportExcel = () => {
+    const { headers, csvRows } = attendanceExportRows();
+    const table = `<table><thead><tr>${headers.map((item) => `<th>${item}</th>`).join('')}</tr></thead><tbody>${csvRows.map((row) => `<tr>${row.map((item) => `<td>${item}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+    const url = URL.createObjectURL(new Blob([table], { type: 'application/vnd.ms-excel' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `attendance-${isPeopleTeam ? day : month}.xls`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportPdf = () => {
+    const { headers, csvRows } = attendanceExportRows();
+    const html = `<html><head><title>Attendance Report</title><style>body{font-family:Arial,sans-serif;padding:24px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f3e8ff}</style></head><body><h1>Attendance Report</h1><table><thead><tr>${headers.map((item) => `<th>${item}</th>`).join('')}</tr></thead><tbody>${csvRows.map((row) => `<tr>${row.map((item) => `<td>${item}</td>`).join('')}</tr>`).join('')}</tbody></table></body></html>`;
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.print();
   };
 
   return (
@@ -297,8 +335,8 @@ function AttendanceView({ currentUser, employees, attendanceRows, attendanceStat
             </>
           )}
           <button className="ems-primary" onClick={exportCsv}>Export CSV</button>
-          <button className="ems-secondary" onClick={exportCsv}>Excel</button>
-          <button className="ems-secondary" onClick={exportCsv}>PDF</button>
+          <button className="ems-secondary" onClick={exportExcel}>Excel</button>
+          <button className="ems-secondary" onClick={exportPdf}>PDF</button>
         </div>
         <div className="ems-table-wrap">
           <table className="ems-table ems-sticky-table">
@@ -545,7 +583,7 @@ function TimeOffView({ currentUser, employees = [], leaves = [], allocations = [
 }
 
 function NewEmployeeModal({ onClose, onCreate, saving, credentials, error }) {
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', mobile: '', jobPosition: '', department: '', role: 'Employee' });
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', mobile: '', jobPosition: '', department: 'General', role: 'Employee' });
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
 
   return (
@@ -558,7 +596,7 @@ function NewEmployeeModal({ onClose, onCreate, saving, credentials, error }) {
           <label>Email<input type="email" value={form.email} onChange={(event) => update('email', event.target.value)} required /></label>
           <label>Mobile<input value={form.mobile} onChange={(event) => update('mobile', event.target.value.replace(/[^\d+]/g, ''))} required /></label>
           <label>Job Title<input value={form.jobPosition} onChange={(event) => update('jobPosition', event.target.value)} /></label>
-          <label>Department<input value={form.department} onChange={(event) => update('department', event.target.value)} /></label>
+          <label>Department<select value={form.department} onChange={(event) => update('department', event.target.value)}>{DEPARTMENT_OPTIONS.map((department) => <option key={department}>{department}</option>)}</select></label>
           <label>Role<select value={form.role} onChange={(event) => update('role', event.target.value)}><option>Employee</option><option>HR</option><option>Admin</option></select></label>
         </div>
         {error && <div className="ems-toast error">{error}</div>}
@@ -577,8 +615,8 @@ export default function Dashboard({ currentUser = {}, onSelectEmployee, onOpenPr
   const [employees, setEmployees] = useState(seedEmployees);
   const [attendanceRows, setAttendanceRows] = useState(() => makeAttendanceRows(seedEmployees));
   const [leaves, setLeaves] = useState([
-    { id: 1, employeeId: 'OISRSX20260002', name: 'Sreejith S', department: 'People', type: 'Sick Leave', start: '2026-07-08', end: '2026-07-09', days: 2, status: 'Pending', appliedDate: '2026-07-06', remarks: 'Awaiting approval' },
-    { id: 2, employeeId: 'OIPRNA20260007', name: 'Priya Nair', department: 'People', type: 'Paid Leave', start: '2026-07-13', end: '2026-07-14', days: 2, status: 'Approved', appliedDate: '2026-07-05', remarks: 'Approved by HR' },
+    { id: 1, employeeId: 'OISRSX20260002', name: 'Sandip Maity', department: 'People', type: 'Sick Leave', start: '2026-07-08', end: '2026-07-09', days: 2, status: 'Pending', appliedDate: '2026-07-06', remarks: 'Awaiting approval' },
+    { id: 2, employeeId: 'OIPRNA20260007', name: 'Priya Saha', department: 'People', type: 'Paid Leave', start: '2026-07-13', end: '2026-07-14', days: 2, status: 'Approved', appliedDate: '2026-07-05', remarks: 'Approved by HR' },
   ]);
   const [allocations, setAllocations] = useState(() => seedEmployees.flatMap((employee) => [
     { employeeId: employee.employeeId, name: employee.name, leaveType: 'Paid Leave', allocatedDays: 24, usedDays: 0, remainingDays: 24 },
@@ -599,26 +637,47 @@ export default function Dashboard({ currentUser = {}, onSelectEmployee, onOpenPr
   useEffect(() => {
     const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
     if (!token) return;
-    const loadLeaveData = async () => {
+    const loadServerData = async () => {
       try {
-        const [leaveResponse, allocationResponse] = await Promise.all([
-          fetch(`${API_URL}/api/leaves`, { headers: authHeaders() }),
-          fetch(`${API_URL}/api/leaves/allocations/list`, { headers: authHeaders() }),
+        const [employeeResult, attendanceResult, leaveResult, allocationResult] = await Promise.allSettled([
+          apiRequest('/api/auth/employees'),
+          apiRequest('/api/attendance'),
+          apiRequest('/api/leaves'),
+          apiRequest('/api/leaves/allocations/list'),
         ]);
-        if (leaveResponse.ok) {
-          const data = await leaveResponse.json();
-          setLeaves((data.leaves || []).map(toUiLeave));
+        if (employeeResult.status === 'fulfilled') setEmployees(employeeResult.value.employees || []);
+        if (attendanceResult.status === 'fulfilled') {
+          const records = attendanceResult.value.records || [];
+          setAttendanceRows(records.map((record) => ({
+            id: record.id,
+            name: record.name || 'Employee',
+            employeeId: record.employeeId,
+            department: record.department || 'General',
+            date: String(record.date).slice(0, 10),
+            shift: record.shift?.type || 'Fixed Shift',
+            checkIn: record.checkIn ? formatTime(new Date(record.checkIn)) : '-',
+            checkOut: record.checkOut ? formatTime(new Date(record.checkOut)) : '-',
+            breakHours: Number(record.breakDurationMinutes || 0) / 60,
+            workHours: record.workHours || 0,
+            extraHours: record.extraHours || 0,
+            status: record.status,
+            leaveType: record.leaveType || '',
+            remarks: record.remarks || '',
+          })));
+          const todayRecord = records.find((record) => record.employeeId === currentEmployeeId && String(record.date).slice(0, 10) === toInputDate());
+          if (todayRecord?.checkIn && !todayRecord.checkOut) {
+            setCheckInTime(new Date(todayRecord.checkIn));
+            setAttendanceStatus('present');
+          }
         }
-        if (allocationResponse.ok) {
-          const data = await allocationResponse.json();
-          setAllocations((data.allocations || []).map(toUiAllocation));
-        }
+        if (leaveResult.status === 'fulfilled') setLeaves((leaveResult.value.leaves || []).map(toUiLeave));
+        if (allocationResult.status === 'fulfilled') setAllocations((allocationResult.value.allocations || []).map(toUiAllocation));
       } catch {
         setToast({ type: 'error', message: 'Backend unavailable. Showing local demo data.' });
       }
     };
-    loadLeaveData();
-  }, []);
+    loadServerData();
+  }, [currentEmployeeId]);
 
   const visibleEmployees = useMemo(() => {
     if (canManageEmployees) return employees;
@@ -638,53 +697,62 @@ export default function Dashboard({ currentUser = {}, onSelectEmployee, onOpenPr
     }];
   }, [attendanceStatus, canManageEmployees, currentEmployeeId, currentUser.email, currentUser.name, currentUser.phone, employees]);
 
-  const handleCheckIn = () => {
+  const handleCheckIn = async () => {
     const now = new Date();
-    setCheckInTime(now);
-    setAttendanceStatus('present');
-    setEmployees((items) => items.map((item) => item.employeeId === currentEmployeeId ? { ...item, status: 'present' } : item));
-    setToast({ type: 'success', message: 'Checked in successfully.' });
+    try {
+      const record = await apiRequest('/api/attendance/checkin', { method: 'POST' });
+      setAttendanceRows((rows) => [{
+        id: record.id,
+        name: currentUser.name || 'Me',
+        employeeId: record.employeeId,
+        department: 'General',
+        date: String(record.date).slice(0, 10),
+        shift: record.shift?.type || 'Fixed Shift',
+        checkIn: record.checkIn ? formatTime(new Date(record.checkIn)) : formatTime(),
+        checkOut: '-',
+        breakHours: Number(record.breakDurationMinutes || 0) / 60,
+        workHours: record.workHours || 0,
+        extraHours: record.extraHours || 0,
+        status: record.status,
+        leaveType: '',
+        remarks: record.remarks || '',
+      }, ...rows]);
+      setCheckInTime(record.checkIn ? new Date(record.checkIn) : now);
+      setAttendanceStatus('present');
+      setEmployees((items) => items.map((item) => item.employeeId === currentEmployeeId ? { ...item, status: 'present' } : item));
+      setToast({ type: 'success', message: 'Checked in successfully.' });
+    } catch (error) {
+      setToast({ type: 'error', message: error.message });
+      return;
+    }
   };
 
-  const handleCheckOut = () => {
+  const handleCheckOut = async () => {
     if (!checkInTime) return;
-    const now = new Date();
-    const minutes = Math.max(1, Math.round((now - checkInTime) / 60000));
-    const workHours = Number((minutes / 60).toFixed(2));
-    const extraHours = Math.max(0, Number((workHours - 8).toFixed(2)));
-    setAttendanceStatus('absent');
-    setLastDuration(`${hoursLabel(workHours)} total hours worked today`);
-    setAttendanceRows((rows) => [{
-      id: Date.now(),
-      name: currentUser.name || 'Me',
-      employeeId: currentEmployeeId,
-      department: 'General',
-      date: toInputDate(now),
-      shift: 'Fixed Shift',
-      checkIn: formatTime(checkInTime),
-      checkOut: formatTime(now),
-      breakHours: 0,
-      workHours,
-      extraHours,
-      status: workHours < 4 ? 'Half Day' : 'Present',
-      leaveType: '',
-      remarks: 'Self check-out',
-    }, ...rows]);
-    setEmployees((items) => items.map((item) => item.employeeId === currentEmployeeId ? { ...item, status: 'absent' } : item));
-    setToast({ type: 'success', message: `Checked out. Total hours: ${hoursLabel(workHours)}` });
+    try {
+      const record = await apiRequest('/api/attendance/checkout', { method: 'POST' });
+      const workHours = record.workHours || 0;
+      const extraHours = record.extraHours || 0;
+      setAttendanceRows((rows) => rows.map((row) => row.date === String(record.date).slice(0, 10) && row.employeeId === record.employeeId ? {
+        ...row,
+        checkOut: record.checkOut ? formatTime(new Date(record.checkOut)) : '-',
+        workHours,
+        extraHours,
+        status: record.status,
+      } : row));
+      setAttendanceStatus('absent');
+      setLastDuration(`${hoursLabel(workHours)} total hours worked today`);
+      setEmployees((items) => items.map((item) => item.employeeId === currentEmployeeId ? { ...item, status: 'absent' } : item));
+      setToast({ type: 'success', message: `Checked out. Total hours: ${hoursLabel(workHours)}` });
+    } catch (error) {
+      setToast({ type: 'error', message: error.message });
+    }
   };
 
   const handleUpdateLeaveStatus = async (id, status) => {
     try {
-      const response = await fetch(`${API_URL}/api/leaves/${id}/review`, {
-        method: 'PATCH',
-        headers: authHeaders(),
-        body: JSON.stringify({ status }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setLeaves((items) => items.map((leave) => leave.id === id ? toUiLeave(data.leave) : leave));
-      }
+      const data = await apiRequest(`/api/leaves/${id}/review`, { method: 'PATCH', body: JSON.stringify({ status }) });
+      setLeaves((items) => items.map((leave) => leave.id === id ? toUiLeave(data.leave) : leave));
     } catch {
       // Local fallback keeps the demo workflow usable when the API is not running.
     }
@@ -725,7 +793,7 @@ export default function Dashboard({ currentUser = {}, onSelectEmployee, onOpenPr
 
   const handleCancelLeave = async (id) => {
     try {
-      await fetch(`${API_URL}/api/leaves/${id}/cancel`, { method: 'PATCH', headers: authHeaders() });
+      await apiRequest(`/api/leaves/${id}/cancel`, { method: 'PATCH' });
     } catch {
       // Local fallback keeps the employee flow responsive during frontend-only runs.
     }
@@ -737,17 +805,10 @@ export default function Dashboard({ currentUser = {}, onSelectEmployee, onOpenPr
     const employee = employees.find((item) => item.employeeId === allocationForm.employeeId);
     if (!employee) return;
     try {
-      const response = await fetch(`${API_URL}/api/leaves/allocations`, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({ userId: employee.id, leaveType: allocationForm.leaveType, allocatedDays: allocationForm.allocatedDays }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setAllocations((items) => [toUiAllocation(data.allocation), ...items.filter((item) => item.employeeId !== employee.employeeId || item.leaveType !== allocationForm.leaveType)]);
-        setToast({ type: 'success', message: 'Leave allocation saved.' });
-        return;
-      }
+      const data = await apiRequest('/api/leaves/allocations', { method: 'POST', body: JSON.stringify({ userId: employee.id, leaveType: allocationForm.leaveType, allocatedDays: allocationForm.allocatedDays }) });
+      setAllocations((items) => [toUiAllocation(data.allocation), ...items.filter((item) => item.employeeId !== employee.employeeId || item.leaveType !== allocationForm.leaveType)]);
+      setToast({ type: 'success', message: 'Leave allocation saved.' });
+      return;
     } catch {
       // Fall through to local state when employee records are demo-only.
     }
@@ -764,17 +825,10 @@ export default function Dashboard({ currentUser = {}, onSelectEmployee, onOpenPr
 
   const handleAddLeave = async (leave) => {
     try {
-      const response = await fetch(`${API_URL}/api/leaves`, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({ leaveType: leave.type, startDate: leave.start, endDate: leave.end, reason: leave.reason }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setLeaves((items) => [toUiLeave(data.leave), ...items]);
-        setToast({ type: 'success', message: 'Leave request submitted.' });
-        return;
-      }
+      const data = await apiRequest('/api/leaves', { method: 'POST', body: JSON.stringify({ leaveType: leave.type, startDate: leave.start, endDate: leave.end, reason: leave.reason }) });
+      setLeaves((items) => [toUiLeave(data.leave), ...items]);
+      setToast({ type: 'success', message: 'Leave request submitted.' });
+      return;
     } catch {
       // Fall back to local state if the backend is offline.
     }
@@ -816,7 +870,16 @@ export default function Dashboard({ currentUser = {}, onSelectEmployee, onOpenPr
   return (
     <div className="ems-shell">
       <ShellNav activeModule={activeModule} onModuleChange={setActiveModule} currentUser={currentUser} onOpenProfile={onOpenProfile} onLogout={onLogout} />
-      {activeModule === 'Employees' && <EmployeesView employees={visibleEmployees} canManageEmployees={canManageEmployees} onSelectEmployee={onSelectEmployee} onNewEmployee={() => { setNewEmployeeOpen(true); setEmployeeCreateState({ saving: false, error: '', credentials: null }); }} toast={toast} />}
+      {activeModule === 'Employees' && <EmployeesView employees={visibleEmployees} canManageEmployees={canManageEmployees} onSelectEmployee={onSelectEmployee} onNewEmployee={() => { setNewEmployeeOpen(true); setEmployeeCreateState({ saving: false, error: '', credentials: null }); }} onDeleteEmployee={async (employee) => {
+        if (!window.confirm(`Remove ${employee.name}?`)) return;
+        try {
+          await apiRequest(`/api/auth/employees/${employee.id}`, { method: 'DELETE' });
+          setEmployees((items) => items.filter((item) => item.id !== employee.id));
+          setToast({ type: 'success', message: 'Employee removed.' });
+        } catch (error) {
+          setToast({ type: 'error', message: error.message });
+        }
+      }} toast={toast} />}
       {activeModule === 'Attendance' && <AttendanceView currentUser={currentUser} employees={visibleEmployees} attendanceRows={attendanceRows} attendanceStatus={attendanceStatus} checkInTime={checkInTime} lastDuration={lastDuration} onCheckIn={handleCheckIn} onCheckOut={handleCheckOut} isPeopleTeam={canManageEmployees} />}
       {activeModule === 'Time Off' && <TimeOffView currentUser={currentUser} employees={visibleEmployees} leaves={leaves} allocations={allocations} canApproveLeave={canApproveLeave} onAddLeave={handleAddLeave} onUpdateLeaveStatus={handleUpdateLeaveStatus} onCancelLeave={handleCancelLeave} onSaveAllocation={handleSaveAllocation} onDeleteAllocation={(employeeId, leaveType) => setAllocations((items) => items.filter((item) => item.employeeId !== employeeId || item.leaveType !== leaveType))} />}
       {newEmployeeOpen && <NewEmployeeModal onClose={() => setNewEmployeeOpen(false)} onCreate={handleCreateEmployee} saving={employeeCreateState.saving} credentials={employeeCreateState.credentials} error={employeeCreateState.error} />}

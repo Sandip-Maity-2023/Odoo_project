@@ -343,6 +343,18 @@ body {
   box-shadow: 0 16px 34px rgba(88, 28, 135, 0.08);
 }
 
+.ems-employee-tile {
+  position: relative;
+  display: grid;
+  gap: 8px;
+}
+
+.ems-remove-employee {
+  justify-self: end;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
 .ems-card {
   padding: 18px;
 }

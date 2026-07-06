@@ -1,8 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import logo from '../assets/odoo_img.png';
 
 const avatarFor = (name) => `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(name || 'Employee')}`;
 const currency = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 });
+const API_URL = import.meta.env.VITE_API_URL || '';
+const authHeaders = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('accessToken') || localStorage.getItem('token')}` });
 
 const resumeFields = ['About Me', 'Work Experience', 'Education', 'Projects', 'Skills', 'Certifications', 'Languages', 'Interests & Hobbies'];
 const privateFields = ['Date of Birth', 'Gender', 'Marital Status', 'Nationality', 'Personal Email', 'Residential Address', 'Date of Joining', 'Employee Code', 'Bank Name', 'Account Number', 'IFSC Code', 'PAN Number', 'UAN Number'];
@@ -129,8 +131,9 @@ export default function Profile({ currentUser = {}, employee = null, onBack, onL
   };
 
   const isAdmin = currentUser.role === 'Admin';
+  const isPeopleTeam = currentUser.role === 'Admin' || currentUser.role === 'HR';
   const isOwner = profile.employeeId === (currentUser.employeeId || currentUser.loginId);
-  const canEditProfile = isAdmin || isOwner;
+  const canEditProfile = isPeopleTeam || isOwner;
   const [activeTab, setActiveTab] = useState('Resume');
   const [toast, setToast] = useState('');
   const [avatarPreview, setAvatarPreview] = useState(profile.avatar || avatarFor(profile.name));
@@ -152,10 +155,17 @@ export default function Profile({ currentUser = {}, employee = null, onBack, onL
   });
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [salaryConfig, setSalaryConfig] = useState(defaultSalaryConfig);
+  const targetId = profile.id || currentUser.id || 'me';
 
   const tabs = ['Resume', 'Private Information', 'Security', ...(isAdmin ? ['Salary Information'] : [])];
   const updateResume = (key, value) => setResume((current) => ({ ...current, [key]: value }));
   const updatePrivate = (key, value) => setPrivateInfo((current) => ({ ...current, [key]: value }));
+
+  useEffect(() => {
+    if (profile.resume) setResume((current) => ({ ...current, ...profile.resume }));
+    if (profile.privateInfo) setPrivateInfo((current) => ({ ...current, ...profile.privateInfo }));
+    if (profile.avatar) setAvatarPreview(profile.avatar);
+  }, [profile.avatar, profile.privateInfo, profile.resume]);
 
   const handleAvatar = (event) => {
     const file = event.target.files?.[0];
@@ -164,16 +174,56 @@ export default function Profile({ currentUser = {}, employee = null, onBack, onL
       setToast('Please upload an image under 1MB.');
       return;
     }
-    setAvatarPreview(URL.createObjectURL(file));
-    setToast('Profile picture preview updated.');
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result);
+      setAvatarPreview(dataUrl);
+      setToast('Profile picture preview updated.');
+    };
+    reader.readAsDataURL(file);
   };
 
-  const save = () => setToast('Profile changes saved locally.');
+  const save = async (payload, successMessage) => {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/employees/${targetId}`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.message || 'Unable to save profile changes');
+      if (String(targetId) === String(currentUser.id) || targetId === 'me') {
+        const updatedUser = { ...currentUser, ...data.user };
+        localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+      }
+      setToast(successMessage);
+    } catch (error) {
+      setToast(error.message);
+    }
+  };
 
-  const changePassword = (event) => {
+  const avatarPayload = () => {
+    if (!avatarPreview?.startsWith('data:')) return null;
+    const [meta, data] = avatarPreview.split(',');
+    return { mimeType: meta.match(/data:(.*);base64/)?.[1] || 'image/png', data, fileName: 'profile-photo' };
+  };
+
+  const changePassword = async (event) => {
     event.preventDefault();
     if (passwordForm.newPassword !== passwordForm.confirmPassword) return setToast('New password and confirm password must match.');
-    setToast('Password change request is ready to submit.');
+    try {
+      const response = await fetch(`${API_URL}/api/auth/change-password`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ currentPassword: passwordForm.currentPassword, newPassword: passwordForm.newPassword }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.message || 'Unable to update password');
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setToast('Password updated successfully.');
+    } catch (error) {
+      setToast(error.message);
+    }
   };
 
   return (
@@ -217,14 +267,14 @@ export default function Profile({ currentUser = {}, employee = null, onBack, onL
           {activeTab === 'Resume' && (
             <>
               <FieldGrid fields={resumeFields} values={resume} onChange={updateResume} editable={canEditProfile} textarea />
-              {canEditProfile && <button className="ems-primary" onClick={save}>Save Resume</button>}
+              {canEditProfile && <button className="ems-primary" onClick={() => save({ resume, avatar: avatarPayload() }, 'Resume saved successfully.')}>Save Resume</button>}
             </>
           )}
 
           {activeTab === 'Private Information' && (
             <>
               <FieldGrid fields={privateFields} values={privateInfo} onChange={updatePrivate} editable={canEditProfile} />
-              {canEditProfile && <button className="ems-primary" onClick={save}>Save Private Information</button>}
+              {canEditProfile && <button className="ems-primary" onClick={() => save({ privateInfo, avatar: avatarPayload() }, 'Private information saved successfully.')}>Save Private Information</button>}
             </>
           )}
 
