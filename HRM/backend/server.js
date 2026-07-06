@@ -4,6 +4,8 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
+const leaveRoutes = require('./routes/leaveRoutes');
+const { securityHeaders } = require('./middleware/securityMiddleware');
 
 dotenv.config();
 
@@ -12,13 +14,27 @@ const app = express();
 // Database initialization
 connectDB();
 
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173,http://127.0.0.1:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 // Core standard middle layers setup
-app.use(cors());
-app.use(express.json());
+app.set('trust proxy', 1);
+app.use(securityHeaders);
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
+app.use(express.json({ limit: '2mb' }));
 
 // Routes linking mapping points 
 app.use('/api/auth', authRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/leaves', leaveRoutes);
 
 // Base health check verification link endpoint
 app.get('/', (req, res) => res.send('HRM System Backend Core Engine API Online running...'));

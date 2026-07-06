@@ -1,12 +1,16 @@
-const mongoose =require('mongoose');
+const mongoose = require('mongoose');
+
 const companySchema = new mongoose.Schema({
-    customId: { type: String, unique: true }, // Format: OIJODO20230001
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  role: { type: String, enum: ['Admin', 'HR', 'Employee'], default: 'Employee' },
-  isFirstLogin: { type: Boolean, default: true }, // Forces user to change temporary password
-  joiningYear: { type: Number, default: () => new Date().getFullYear() }
+  company_name: { type: String, required: true, trim: true },
+  company_code: { type: String, required: true, uppercase: true, trim: true },
+  company_logo: {
+    data: String,
+    mimeType: String,
+    fileName: String,
+  },
+  created_at: { type: Date, default: Date.now },
 }, { timestamps: true });
+
+companySchema.index({ company_name: 1 }, { unique: true });
 
 module.exports = mongoose.model('Company', companySchema);
