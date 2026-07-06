@@ -41,7 +41,8 @@ const serializeLeave = (leave) => ({
 });
 
 exports.listLeaves = async (req, res) => {
-  const query = canManageLeave(req.user) ? {} : { userId: req.user.id };
+  const companyUsers = canManageLeave(req.user) ? await User.find({ company_id: req.user.company_id }).select('_id') : [];
+  const query = canManageLeave(req.user) ? { userId: { $in: companyUsers.map((user) => user._id) } } : { userId: req.user.id };
   const { employeeId, status, leaveType, department, startDate, endDate } = req.query;
   if (employeeId && canManageLeave(req.user)) query.employeeId = employeeId;
   if (status) query.status = status;
@@ -130,7 +131,8 @@ exports.cancelLeave = async (req, res) => {
 };
 
 exports.listAllocations = async (req, res) => {
-  const query = canManageLeave(req.user) ? {} : { userId: req.user.id };
+  const companyUsers = canManageLeave(req.user) ? await User.find({ company_id: req.user.company_id }).select('_id') : [];
+  const query = canManageLeave(req.user) ? { userId: { $in: companyUsers.map((user) => user._id) } } : { userId: req.user.id };
   const allocations = await LeaveAllocation.find(query).sort({ employeeName: 1, leaveType: 1 });
   res.json({ allocations });
 };
@@ -140,6 +142,7 @@ exports.upsertAllocation = async (req, res) => {
   const { userId, leaveType, allocatedDays } = req.body;
   const employee = await User.findById(userId);
   if (!employee) return res.status(404).json({ message: 'Employee not found' });
+  if (String(employee.company_id) !== String(req.user.company_id)) return res.status(403).json({ message: 'Access denied' });
   const used = Number(req.body.usedDays || 0);
   const name = `${employee.first_name} ${employee.last_name}`.trim();
   const allocation = await LeaveAllocation.findOneAndUpdate(

@@ -22,6 +22,16 @@ const userSchema = new mongoose.Schema({
     firstName: String,
     lastName: String,
     phone: String,
+    avatar: {
+      data: String,
+      mimeType: String,
+      fileName: String,
+    },
+    resume: mongoose.Schema.Types.Mixed,
+    privateInfo: mongoose.Schema.Types.Mixed,
+    address: String,
+    manager: String,
+    location: String,
     department: String,
     jobPosition: String,
     status: { type: String, default: 'Absent' }, // Present, Absent, Leave

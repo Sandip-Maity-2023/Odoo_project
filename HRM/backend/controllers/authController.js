@@ -64,6 +64,20 @@ const validateLogo = (logo = null) => {
   return logo;
 };
 
+const friendlyError = (err) => {
+  if (err?.code === 11000) {
+    const field = Object.keys(err.keyPattern || err.keyValue || {})[0] || 'value';
+    if (field === 'customId' || field === 'company_name') return 'Company is already registered. Please use a different company name.';
+    if (field === 'email') return 'Email is already registered.';
+    if (field === 'login_id' || field === 'employeeId') return 'Employee ID already exists. Please try again.';
+    return 'Duplicate record found. Please check the entered details.';
+  }
+  if (err?.name === 'MongooseError' && /buffering timed out|server selection/i.test(err.message)) {
+    return 'Database is not connected. Please start MongoDB or check MONGO_URI, then try again.';
+  }
+  return err.message || 'Something went wrong';
+};
+
 exports.registerAdmin = async (req, res) => {
   try {
     const { companyName, companyLogo, name, email, phone, password, confirmPassword } = req.body;
@@ -87,6 +101,7 @@ exports.registerAdmin = async (req, res) => {
     const company = await Company.create({
       company_name: companyName.trim(),
       company_code: idParts.companyCode,
+      customId: idParts.companyCode,
       company_logo: validateLogo(companyLogo),
     });
 
@@ -113,7 +128,7 @@ exports.registerAdmin = async (req, res) => {
 
     res.status(201).json({ message: 'Admin registered', employeeId: admin.login_id, loginId: admin.login_id });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(err?.code === 11000 ? 409 : 500).json({ message: friendlyError(err) });
   }
 };
 
@@ -133,7 +148,7 @@ exports.login = async (req, res) => {
     const tokens = await issueTokens(user);
     res.json({ ...tokens, token: tokens.accessToken, user: serializeUser(user) });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: friendlyError(err) });
   }
 };
 
@@ -186,7 +201,7 @@ exports.createEmployee = async (req, res) => {
       temporaryPassword,
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(err?.code === 11000 ? 409 : 500).json({ message: friendlyError(err) });
   }
 };
 
@@ -210,7 +225,7 @@ exports.changePassword = async (req, res) => {
 
     res.json({ message: 'Password updated successfully', user: serializeUser(user) });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: friendlyError(err) });
   }
 };
 
@@ -237,6 +252,92 @@ exports.logout = async (req, res) => {
 };
 
 exports.getProfile = async (req, res) => res.json({ user: serializeUser(req.user) });
+
+exports.listEmployees = async (req, res) => {
+  try {
+    const canViewAll = ['Admin', 'HR'].includes(req.user.role);
+    const query = canViewAll ? { company_id: req.user.company_id } : { _id: req.user._id };
+    const users = await User.find(query).select('-password -password_hash -temporary_password -refresh_tokens').sort({ createdAt: -1 });
+    res.json({ employees: users.map(serializeEmployee) });
+  } catch (err) {
+    res.status(500).json({ message: friendlyError(err) });
+  }
+};
+
+exports.updateEmployee = async (req, res) => {
+  try {
+    const canManage = ['Admin', 'HR'].includes(req.user.role);
+    const targetId = req.params.id === 'me' ? req.user._id : req.params.id;
+    if (!canManage && String(targetId) !== String(req.user._id)) return res.status(403).json({ message: 'Access denied.' });
+
+    const updates = {};
+    const profileUpdates = {};
+    const { firstName, lastName, name, phone, email, role, department, jobPosition, avatar, resume, privateInfo, address, manager, location } = req.body;
+    const normalized = name ? normalizeName(name) : { firstName, lastName };
+    if (normalized.firstName) updates.first_name = normalized.firstName;
+    if (normalized.lastName) updates.last_name = normalized.lastName;
+    if (phone) updates.phone = phone;
+    if (email && canManage) updates.email = email.toLowerCase();
+    if (role && canManage) {
+      if (!ROLES.includes(role)) return res.status(400).json({ message: 'Invalid role' });
+      if (role === 'Admin' && req.user.role !== 'Admin') return res.status(403).json({ message: 'Only Admin can assign Admin role' });
+      updates.role = role;
+    }
+    if (normalized.firstName) profileUpdates.firstName = normalized.firstName;
+    if (normalized.lastName) profileUpdates.lastName = normalized.lastName;
+    if (phone) profileUpdates.phone = phone;
+    if (department !== undefined) profileUpdates.department = department;
+    if (jobPosition !== undefined) profileUpdates.jobPosition = jobPosition;
+    if (avatar !== undefined) profileUpdates.avatar = avatar;
+    if (resume !== undefined) profileUpdates.resume = resume;
+    if (privateInfo !== undefined) profileUpdates.privateInfo = privateInfo;
+    if (address !== undefined) profileUpdates.address = address;
+    if (manager !== undefined) profileUpdates.manager = manager;
+    if (location !== undefined) profileUpdates.location = location;
+
+    Object.entries(profileUpdates).forEach(([key, value]) => { updates[`profile.${key}`] = value; });
+    const user = await User.findOneAndUpdate({ _id: targetId, company_id: req.user.company_id }, updates, { new: true }).select('-password -password_hash -temporary_password -refresh_tokens');
+    if (!user) return res.status(404).json({ message: 'Employee not found' });
+    res.json({ employee: serializeEmployee(user), user: serializeUser(user) });
+  } catch (err) {
+    res.status(err?.code === 11000 ? 409 : 500).json({ message: friendlyError(err) });
+  }
+};
+
+exports.deleteEmployee = async (req, res) => {
+  try {
+    if (!['Admin', 'HR'].includes(req.user.role)) return res.status(403).json({ message: 'Access denied.' });
+    if (String(req.params.id) === String(req.user._id)) return res.status(400).json({ message: 'You cannot remove your own account.' });
+    const user = await User.findOneAndDelete({ _id: req.params.id, company_id: req.user.company_id });
+    if (!user) return res.status(404).json({ message: 'Employee not found' });
+    res.json({ message: 'Employee removed' });
+  } catch (err) {
+    res.status(500).json({ message: friendlyError(err) });
+  }
+};
+
+function serializeEmployee(user) {
+  return {
+    id: user._id,
+    name: `${user.first_name} ${user.last_name}`.trim(),
+    employeeId: user.login_id,
+    loginId: user.login_id,
+    role: user.role,
+    email: user.email,
+    mobile: user.phone,
+    phone: user.phone,
+    company: user.companyName,
+    department: user.profile?.department || 'General',
+    jobPosition: user.profile?.jobPosition || user.role,
+    manager: user.profile?.manager || 'Manager',
+    location: user.profile?.location || 'Office',
+    status: String(user.profile?.status || 'Absent').toLowerCase(),
+    avatar: user.profile?.avatar?.data ? `data:${user.profile.avatar.mimeType};base64,${user.profile.avatar.data}` : null,
+    resume: user.profile?.resume || {},
+    privateInfo: user.profile?.privateInfo || {},
+    address: user.profile?.address || '',
+  };
+}
 
 exports.registerCompanyTenant = exports.registerAdmin;
 exports.loginUser = exports.login;

@@ -33,6 +33,8 @@ const getStatus = (record) => {
 const serialize = (record) => ({
     id: record._id,
     employeeId: record.employeeId,
+    name: record.userId ? `${record.userId.first_name || ''} ${record.userId.last_name || ''}`.trim() : undefined,
+    department: record.userId?.profile?.department || 'General',
     date: record.date,
     shift: record.shift,
     checkIn: record.checkIn,
@@ -94,8 +96,10 @@ exports.listAttendance = async (req, res) => {
 
     if (!canViewAll) {
         query.userId = req.user.id;
-    } else if (employeeId) {
-        query.employeeId = employeeId;
+    } else {
+        const companyUsers = await User.find({ company_id: req.user.company_id }).select('_id');
+        query.userId = { $in: companyUsers.map((user) => user._id) };
+        if (employeeId) query.employeeId = employeeId;
     }
 
     if (status) query.status = status;
@@ -123,6 +127,10 @@ exports.correctAttendance = async (req, res) => {
     const updates = req.body;
     const record = await Attendance.findById(id);
     if (!record) return res.status(404).json({ message: 'Attendance record not found' });
+    const employee = await User.findById(record.userId).select('company_id');
+    if (!employee || String(employee.company_id) !== String(req.user.company_id)) {
+        return res.status(403).json({ message: 'Access denied' });
+    }
 
     ['checkIn', 'checkOut', 'breakDurationMinutes', 'remarks', 'status'].forEach((field) => {
         if (updates[field] !== undefined) record[field] = updates[field];
