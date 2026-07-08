@@ -29,12 +29,13 @@ app.use(cors({
   },
   credentials: true,
 }));
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({ limit: '10mb' }));
 
 // Routes linking mapping points 
 app.use('/api/auth', authRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/leaves', leaveRoutes);
+app.use('/api/profile', require('./routes/profile.routes'));
 
 // Base health check verification link endpoint
 app.get('/', (req, res) => res.send('HRM System Backend Core Engine API Online running...'));

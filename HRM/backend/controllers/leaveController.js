@@ -38,6 +38,11 @@ const serializeLeave = (leave) => ({
   status: leave.status,
   appliedDate: dateKey(leave.appliedDate || leave.createdAt),
   approvalRemarks: leave.approvalRemarks,
+  attachment: leave.attachment?.data ? {
+    fileName: leave.attachment.fileName,
+    mimeType: leave.attachment.mimeType,
+    data: leave.attachment.data,
+  } : null,
 });
 
 exports.listLeaves = async (req, res) => {

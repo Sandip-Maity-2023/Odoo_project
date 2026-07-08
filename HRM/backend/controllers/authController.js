@@ -268,7 +268,8 @@ exports.updateEmployee = async (req, res) => {
   try {
     const canManage = ['Admin', 'HR'].includes(req.user.role);
     const targetId = req.params.id === 'me' ? req.user._id : req.params.id;
-    if (!canManage && String(targetId) !== String(req.user._id)) return res.status(403).json({ message: 'Access denied.' });
+    const isOwner = String(targetId) === String(req.user._id);
+    if (!canManage && !isOwner) return res.status(403).json({ message: 'Access denied.' });
 
     const updates = {};
     const profileUpdates = {};
@@ -288,10 +289,13 @@ exports.updateEmployee = async (req, res) => {
     if (phone) profileUpdates.phone = phone;
     if (department !== undefined) profileUpdates.department = department;
     if (jobPosition !== undefined) profileUpdates.jobPosition = jobPosition;
-    if (avatar !== undefined) profileUpdates.avatar = avatar;
-    if (resume !== undefined) profileUpdates.resume = resume;
-    if (privateInfo !== undefined) profileUpdates.privateInfo = privateInfo;
-    if (address !== undefined) profileUpdates.address = address;
+    if (!isOwner && (avatar !== undefined || resume !== undefined || privateInfo !== undefined || address !== undefined)) {
+      return res.status(403).json({ message: 'Only the employee can update resume, profile picture and private information.' });
+    }
+    if (avatar !== undefined && isOwner) profileUpdates.avatar = avatar;
+    if (resume !== undefined && isOwner) profileUpdates.resume = resume;
+    if (privateInfo !== undefined && isOwner) profileUpdates.privateInfo = privateInfo;
+    if (address !== undefined && isOwner) profileUpdates.address = address;
     if (manager !== undefined) profileUpdates.manager = manager;
     if (location !== undefined) profileUpdates.location = location;
 
