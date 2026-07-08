@@ -16,6 +16,10 @@ root directory: HRM/backend
 build command : npm install
 start command: npm start
 
-
+in vercel:
+https://hrm-ochre-eta.vercel.app
+build command: npm run build
+dist
+npm install
 
 
