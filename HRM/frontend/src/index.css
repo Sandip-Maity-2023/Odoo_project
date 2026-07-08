@@ -222,6 +222,7 @@ body {
   padding: 12px 24px;
   box-shadow: 0 10px 30px rgba(88, 28, 135, 0.08);
   backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .ems-brand {
