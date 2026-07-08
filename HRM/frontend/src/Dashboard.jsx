@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import logo from './assets/odoo_img.png';
+import {FaUser, FaUserAltSlash} from "react-icons/fa";
+
+
 
 const PAGE_SIZE = 8;
 const API_URL = import.meta.env.VITE_API_URL || '';
@@ -10,17 +13,17 @@ const seedEmployees = [
   { id: 2, name: 'Prathama Pal', employeeId: 'OIPRPA20260002', jobPosition: 'HR Executive', department: 'People', email: 'prathama.pal@odoo.in', mobile: '+91 98765 43211', company: 'Odoo India', manager: 'Ananya Sen', location: 'Bengaluru', status: 'leave' },
   { id: 3, name: 'Rohit Kumar', employeeId: 'OIROKU20260003', jobPosition: 'Backend Developer', department: 'Engineering', email: 'rohit@odoo.com', mobile: '+91 98765 43212', company: 'Odoo India', manager: 'Shibashis Das', location: 'Hyderabad', status: 'absent' },
   { id: 4, name: 'Ananya Das', employeeId: 'OIANDA20260004', jobPosition: 'Payroll Analyst', department: 'Finance', email: 'ananya@odoo.com', mobile: '+91 98765 43213', company: 'Odoo India', manager: 'Rohit Kumar', location: 'Mumbai', status: 'present' },
-  { id: 5, name: 'Sounak Ghosh', employeeId: 'OISODA20260005', jobPosition: 'QA Engineer', department: 'Quality', email: 'nisha@odoo.com', mobile: '+91 98765 43214', company: 'Odoo India', manager: 'Shibashis Das', location: 'Pune', status: 'absent' },
-  { id: 6, name: 'Jyotirmoy Das', employeeId: 'OIJYDA20260006', jobPosition: 'Product Designer', department: 'Product', email: 'arjun@odoo.com', mobile: '+91 98765 43215', company: 'Odoo India', manager: 'Ananya Sen', location: 'Delhi', status: 'present' },
-  { id: 7, name: 'Suman Mondal', employeeId: 'OISUMO20260007', jobPosition: 'Recruiter', department: 'People', email: 'priya@odoo.com', mobile: '+91 98765 43216', company: 'Odoo India', manager: 'Sreejith S', location: 'Kochi', status: 'leave' },
-  { id: 8, name: 'Sk Nahid Faiyaz', employeeId: 'OISKFA20260008', jobPosition: 'DevOps Engineer', department: 'Platform', email: 'kabir@odoo.com', mobile: '+91 98765 43217', company: 'Odoo India', manager: 'Rohit Kumar', location: 'Noida', status: 'absent' },
-  { id: 9, name: 'Pratasha Basak', employeeId: 'OIPRBA20260009', jobPosition: 'Business Analyst', department: 'Operations', email: 'meera@odoo.com', mobile: '+91 98765 43218', company: 'Odoo India', manager: 'Ananya Sen', location: 'Chennai', status: 'present' },
-];
+  // { id: 5, name: 'Sounak Ghosh', employeeId: 'OISODA20260005', jobPosition: 'QA Engineer', department: 'Quality', email: 'nisha@odoo.com', mobile: '+91 98765 43214', company: 'Odoo India', manager: 'Shibashis Das', location: 'Pune', status: 'absent' },
+  // { id: 6, name: 'Jyotirmoy Das', employeeId: 'OIJYDA20260006', jobPosition: 'Product Designer', department: 'Product', email: 'arjun@odoo.com', mobile: '+91 98765 43215', company: 'Odoo India', manager: 'Ananya Sen', location: 'Delhi', status: 'present' },
+  // { id: 7, name: 'Suman Mondal', employeeId: 'OISUMO20260007', jobPosition: 'Recruiter', department: 'People', email: 'priya@odoo.com', mobile: '+91 98765 43216', company: 'Odoo India', manager: 'Sreejith S', location: 'Kochi', status: 'leave' },
+  // { id: 8, name: 'Sk Nahid Faiyaz', employeeId: 'OISKFA20260008', jobPosition: 'DevOps Engineer', department: 'Platform', email: 'kabir@odoo.com', mobile: '+91 98765 43217', company: 'Odoo India', manager: 'Rohit Kumar', location: 'Noida', status: 'absent' },
+//   { id: 9, name: 'Pratasha Basak', employeeId: 'OIPRBA20260009', jobPosition: 'Business Analyst', department: 'Operations', email: 'meera@odoo.com', mobile: '+91 98765 43218', company: 'Odoo India', manager: 'Ananya Sen', location: 'Chennai', status: 'present' },
+ ];
 
 const statusMeta = {
-  present: { label: 'Present', icon: '●', className: 'ems-status present' },
+  present: { label: 'Present', icon: <FaUser/>, className: 'ems-status present' },
   leave: { label: 'On Leave', icon: '✈', className: 'ems-status leave' },
-  absent: { label: 'Absent', icon: '●', className: 'ems-status absent' },
+  absent: { label: 'Absent', icon: <FaUserAltSlash/>, className: 'ems-status absent' },
 };
 
 const formatDate = (date = new Date()) => date.toLocaleDateString('en-GB');
@@ -54,18 +57,22 @@ const makeAttendanceRows = (employees) => {
 const avatarFor = (name) => `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(name || 'Employee')}`;
 const authHeaders = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('accessToken') || localStorage.getItem('token')}` });
 const toUiLeave = (leave) => ({
-  id: leave.id,
+  id: leave.id || leave._id,
   employeeId: leave.employeeId,
-  name: leave.employeeName,
+  name: leave.employeeName || leave.name,
   department: leave.department || 'General',
-  type: leave.leaveType,
-  start: leave.startDate,
-  end: leave.endDate,
-  days: leave.totalDays,
+  type: leave.leaveType || leave.type,
+  start: leave.startDate || leave.start,
+  end: leave.endDate || leave.end,
+  days: leave.totalDays || leave.days,
   reason: leave.reason,
   status: leave.status,
   appliedDate: leave.appliedDate,
-  remarks: leave.approvalRemarks || 'Awaiting approval',
+  remarks: leave.approvalRemarks || leave.remarks || 'Awaiting approval',
+  attachmentName: leave.attachment?.fileName || leave.attachmentName || '',
+  attachmentUrl: leave.attachment?.data
+    ? `data:${leave.attachment.mimeType};base64,${leave.attachment.data}`
+    : leave.attachmentUrl || '',
 });
 const toUiAllocation = (allocation) => ({
   id: allocation._id || allocation.id,
@@ -84,6 +91,50 @@ const apiRequest = async (path, options = {}) => {
   if (!response.ok) throw new Error(data.message || data.error || 'Request failed');
   return data;
 };
+
+const LOCAL_LEAVES_KEY = 'ems:leaveRequests';
+const loadLocalLeaves = () => {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_LEAVES_KEY) || '[]');
+  } catch {
+    return [];
+  }
+};
+const saveLocalLeaves = (leaves) => localStorage.setItem(LOCAL_LEAVES_KEY, JSON.stringify(leaves));
+const mergeLeavesWithLocalDocuments = (serverLeaves) => {
+  const localLeaves = loadLocalLeaves();
+  return serverLeaves.map((leave) => {
+    const local = localLeaves.find((item) => (
+      String(item.id) === String(leave.id)
+      || (
+        item.employeeId === leave.employeeId
+        && item.type === leave.type
+        && item.start === leave.start
+        && item.end === leave.end
+      )
+    ));
+    return {
+      ...leave,
+      attachmentName: leave.attachmentName || local?.attachmentName || '',
+      attachmentUrl: leave.attachmentUrl || local?.attachmentUrl || '',
+    };
+  });
+};
+
+const fileToAttachment = (file) => new Promise((resolve, reject) => {
+  if (!file) return resolve(null);
+  const reader = new FileReader();
+  reader.onload = () => {
+    const [meta, data] = String(reader.result).split(',');
+    resolve({
+      fileName: file.name,
+      mimeType: meta.match(/data:(.*);base64/)?.[1] || file.type || 'application/octet-stream',
+      data,
+    });
+  };
+  reader.onerror = reject;
+  reader.readAsDataURL(file);
+});
 
 function ShellNav({ activeModule, onModuleChange, currentUser, onOpenProfile, onLogout }) {
   const [open, setOpen] = useState(false);
@@ -125,7 +176,9 @@ function EmployeeCard({ employee, onSelectEmployee }) {
 
   return (
     <button className="ems-employee-card" onClick={() => onSelectEmployee({ ...employee, avatar: employee.avatar || avatarFor(employee.name) })}>
-      <span className={status.className} title={status.label}>{status.icon}</span>
+      <span className={status.className} title={status.label}>
+        {status.icon}
+      </span>
       <img src={employee.avatar || avatarFor(employee.name)} alt={employee.name} />
       <strong>{employee.name}</strong>
       <span>{employee.jobPosition || 'Employee'}</span>
@@ -156,7 +209,7 @@ function EmployeesView({ employees, canManageEmployees, onSelectEmployee, onNewE
     <main className="ems-page">
       {toast && <div className={`ems-toast ${toast.type}`}>{toast.message}</div>}
       <section className="ems-hero-row">
-        <div>
+        <div >
           <p>Employee Management</p>
           <h1>Dashboard</h1>
         </div>
@@ -417,7 +470,7 @@ function TimeOffView({ currentUser, employees = [], leaves = [], allocations = [
   const totalPages = Math.max(1, Math.ceil(filteredLeaves.length / PAGE_SIZE));
   const pageRows = filteredLeaves.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const submitLeave = (event) => {
+  const submitLeave = async (event) => {
     event.preventDefault();
     if (!form.start || !form.end || new Date(form.end) < new Date(form.start)) return;
     if (requestedDays <= 0) return;
@@ -425,6 +478,8 @@ function TimeOffView({ currentUser, employees = [], leaves = [], allocations = [
     if (overlaps) return window.alert('This request overlaps with an existing pending or approved leave.');
     if (form.type !== 'Unpaid Leave' && requestedDays > balanceFor(form.type)) return window.alert('Requested days exceed the available balance.');
     const employee = employees.find((item) => item.employeeId === currentEmployeeId) || {};
+    const attachment = await fileToAttachment(form.attachment);
+    const attachmentUrl = attachment ? `data:${attachment.mimeType};base64,${attachment.data}` : '';
     onAddLeave({
       id: Date.now(),
       employeeId: currentEmployeeId,
@@ -435,7 +490,9 @@ function TimeOffView({ currentUser, employees = [], leaves = [], allocations = [
       end: form.end,
       days: requestedDays,
       reason: form.reason,
-      attachmentName: form.attachment?.name || '',
+      attachment,
+      attachmentName: attachment?.fileName || '',
+      attachmentUrl,
       status: 'Pending',
       appliedDate: toInputDate(new Date()),
       remarks: 'Awaiting approval',
@@ -529,12 +586,12 @@ function TimeOffView({ currentUser, employees = [], leaves = [], allocations = [
             )}
             <div className="ems-table-wrap">
               <table className="ems-table ems-sticky-table">
-                <thead><tr>{canApproveLeave && <><th>Employee</th><th>Employee ID</th><th>Department</th></>}<th>Leave Type</th><th>Start Date</th><th>End Date</th><th>Requested Days</th><th>Remaining Balance</th><th>Status</th><th>Applied Date</th><th>Remarks</th><th>Actions</th></tr></thead>
+                <thead><tr>{canApproveLeave && <><th>Employee</th><th>Employee ID</th><th>Department</th></>}<th>Leave Type</th><th>Start Date</th><th>End Date</th><th>Requested Days</th><th>Remaining Balance</th><th>Status</th><th>Applied Date</th><th>Remarks</th><th>Document</th><th>Actions</th></tr></thead>
                 <tbody>
                   {pageRows.map((leave) => (
                     <tr key={leave.id}>
                       {canApproveLeave && <><td>{leave.name}</td><td>{leave.employeeId}</td><td>{leave.department}</td></>}
-                      <td>{leave.type}</td><td>{leave.start}</td><td>{leave.end}</td><td>{leave.days}</td><td>{leave.type === 'Unpaid Leave' ? 'Unlimited' : balanceFor(leave.type, leave.employeeId)}</td><td><span className={`ems-leave-badge ${leave.status.toLowerCase()}`}>{leave.status}</span></td><td>{leave.appliedDate}</td><td>{leave.remarks}</td>
+                      <td>{leave.type}</td><td>{leave.start}</td><td>{leave.end}</td><td>{leave.days}</td><td>{leave.type === 'Unpaid Leave' ? 'Unlimited' : balanceFor(leave.type, leave.employeeId)}</td><td><span className={`ems-leave-badge ${leave.status.toLowerCase()}`}>{leave.status}</span></td><td>{leave.appliedDate}</td><td>{leave.remarks}</td><td>{leave.attachmentName || leave.attachmentUrl ? <a className="ems-doc-link" href={leave.attachmentUrl || '#'} target="_blank" rel="noreferrer">{leave.attachmentName || 'View document'}</a> : 'No document'}</td>
                       <td>{leave.status === 'Pending' ? (canApproveLeave ? <div className="ems-row-actions"><button onClick={() => onUpdateLeaveStatus(leave.id, 'Approved')}>Approve</button><button onClick={() => onUpdateLeaveStatus(leave.id, 'Rejected')}>Reject</button></div> : <button className="ems-secondary" onClick={() => onCancelLeave(leave.id)}>Cancel</button>) : 'View'}</td>
                     </tr>
                   ))}
@@ -571,7 +628,7 @@ function TimeOffView({ currentUser, employees = [], leaves = [], allocations = [
               <label>Start Date<input type="date" value={form.start} onChange={(event) => setForm({ ...form, start: event.target.value })} required /></label>
               <label>End Date<input type="date" value={form.end} onChange={(event) => setForm({ ...form, end: event.target.value })} required /></label>
               <label>Total Leave Days<input value={requestedDays} disabled /></label>
-              <label>Attachment<input type="file" onChange={(event) => setForm({ ...form, attachment: event.target.files?.[0] || null })} /></label>
+              <label>Attachment<input type="file" required={form.type === 'Sick Leave'} onChange={(event) => setForm({ ...form, attachment: event.target.files?.[0] || null })} /></label>
               <label className="ems-full-field">Reason for Leave<input value={form.reason} onChange={(event) => setForm({ ...form, reason: event.target.value })} required /></label>
             </div>
             <div className="ems-modal-actions"><button type="button" className="ems-secondary" onClick={() => setModalOpen(false)}>Cancel</button><button className="ems-primary">Submit</button></div>
@@ -614,10 +671,13 @@ export default function Dashboard({ currentUser = {}, onSelectEmployee, onOpenPr
   const [activeModule, setActiveModule] = useState('Employees');
   const [employees, setEmployees] = useState(seedEmployees);
   const [attendanceRows, setAttendanceRows] = useState(() => makeAttendanceRows(seedEmployees));
-  const [leaves, setLeaves] = useState([
-    { id: 1, employeeId: 'OISRSX20260002', name: 'Sandip Maity', department: 'People', type: 'Sick Leave', start: '2026-07-08', end: '2026-07-09', days: 2, status: 'Pending', appliedDate: '2026-07-06', remarks: 'Awaiting approval' },
-    { id: 2, employeeId: 'OIPRNA20260007', name: 'Priya Saha', department: 'People', type: 'Paid Leave', start: '2026-07-13', end: '2026-07-14', days: 2, status: 'Approved', appliedDate: '2026-07-05', remarks: 'Approved by HR' },
-  ]);
+  const [leaves, setLeaves] = useState(() => {
+    const savedLeaves = loadLocalLeaves();
+    return savedLeaves.length ? savedLeaves : [
+      { id: 1, employeeId: 'OISRSX20260002', name: 'Sandip Maity', department: 'People', type: 'Sick Leave', start: '2026-07-08', end: '2026-07-09', days: 2, status: 'Pending', appliedDate: '2026-07-06', remarks: 'Awaiting approval' },
+      { id: 2, employeeId: 'OIPRNA20260007', name: 'Priya Saha', department: 'People', type: 'Paid Leave', start: '2026-07-13', end: '2026-07-14', days: 2, status: 'Approved', appliedDate: '2026-07-05', remarks: 'Approved by HR' },
+    ];
+  });
   const [allocations, setAllocations] = useState(() => seedEmployees.flatMap((employee) => [
     { employeeId: employee.employeeId, name: employee.name, leaveType: 'Paid Leave', allocatedDays: 24, usedDays: 0, remainingDays: 24 },
     { employeeId: employee.employeeId, name: employee.name, leaveType: 'Sick Leave', allocatedDays: 7, usedDays: 0, remainingDays: 7 },
@@ -670,7 +730,11 @@ export default function Dashboard({ currentUser = {}, onSelectEmployee, onOpenPr
             setAttendanceStatus('present');
           }
         }
-        if (leaveResult.status === 'fulfilled') setLeaves((leaveResult.value.leaves || []).map(toUiLeave));
+        if (leaveResult.status === 'fulfilled') {
+          const serverLeaves = mergeLeavesWithLocalDocuments((leaveResult.value.leaves || []).map(toUiLeave));
+          const localOnly = loadLocalLeaves().filter((local) => !serverLeaves.some((server) => String(server.id) === String(local.id)));
+          setLeaves([...serverLeaves, ...localOnly]);
+        }
         if (allocationResult.status === 'fulfilled') setAllocations((allocationResult.value.allocations || []).map(toUiAllocation));
       } catch {
         setToast({ type: 'error', message: 'Backend unavailable. Showing local demo data.' });
@@ -752,14 +816,22 @@ export default function Dashboard({ currentUser = {}, onSelectEmployee, onOpenPr
   const handleUpdateLeaveStatus = async (id, status) => {
     try {
       const data = await apiRequest(`/api/leaves/${id}/review`, { method: 'PATCH', body: JSON.stringify({ status }) });
-      setLeaves((items) => items.map((leave) => leave.id === id ? toUiLeave(data.leave) : leave));
+      setLeaves((items) => {
+        const next = items.map((leave) => leave.id === id ? { ...toUiLeave(data.leave), attachmentName: leave.attachmentName, attachmentUrl: leave.attachmentUrl } : leave);
+        saveLocalLeaves(next);
+        return next;
+      });
     } catch {
       // Local fallback keeps the demo workflow usable when the API is not running.
     }
-    setLeaves((items) => items.map((leave) => {
-      if (leave.id !== id) return leave;
-      return { ...leave, status, remarks: status === 'Approved' ? 'Approved by People team' : 'Rejected by People team' };
-    }));
+    setLeaves((items) => {
+      const next = items.map((leave) => {
+        if (leave.id !== id) return leave;
+        return { ...leave, status, remarks: status === 'Approved' ? 'Approved by People team' : 'Rejected by People team' };
+      });
+      saveLocalLeaves(next);
+      return next;
+    });
     if (status === 'Approved') {
       const leave = leaves.find((item) => item.id === id);
       if (leave?.type !== 'Unpaid Leave') {
@@ -797,7 +869,11 @@ export default function Dashboard({ currentUser = {}, onSelectEmployee, onOpenPr
     } catch {
       // Local fallback keeps the employee flow responsive during frontend-only runs.
     }
-    setLeaves((items) => items.map((leave) => leave.id === id ? { ...leave, status: 'Cancelled', remarks: 'Cancelled by employee' } : leave));
+    setLeaves((items) => {
+      const next = items.map((leave) => leave.id === id ? { ...leave, status: 'Cancelled', remarks: 'Cancelled by employee' } : leave);
+      saveLocalLeaves(next);
+      return next;
+    });
     setToast({ type: 'success', message: 'Leave request cancelled.' });
   };
 
@@ -825,14 +901,23 @@ export default function Dashboard({ currentUser = {}, onSelectEmployee, onOpenPr
 
   const handleAddLeave = async (leave) => {
     try {
-      const data = await apiRequest('/api/leaves', { method: 'POST', body: JSON.stringify({ leaveType: leave.type, startDate: leave.start, endDate: leave.end, reason: leave.reason }) });
-      setLeaves((items) => [toUiLeave(data.leave), ...items]);
+      const data = await apiRequest('/api/leaves', { method: 'POST', body: JSON.stringify({ leaveType: leave.type, startDate: leave.start, endDate: leave.end, reason: leave.reason, attachment: leave.attachment }) });
+      const savedLeave = { ...toUiLeave(data.leave), attachmentName: leave.attachmentName, attachmentUrl: leave.attachmentUrl };
+      setLeaves((items) => {
+        const next = [savedLeave, ...items];
+        saveLocalLeaves(next);
+        return next;
+      });
       setToast({ type: 'success', message: 'Leave request submitted.' });
       return;
     } catch {
       // Fall back to local state if the backend is offline.
     }
-    setLeaves((items) => [leave, ...items]);
+    setLeaves((items) => {
+      const next = [leave, ...items];
+      saveLocalLeaves(next);
+      return next;
+    });
     setToast({ type: 'success', message: 'Leave request submitted.' });
   };
 

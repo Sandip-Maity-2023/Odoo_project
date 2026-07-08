@@ -131,9 +131,8 @@ export default function Profile({ currentUser = {}, employee = null, onBack, onL
   };
 
   const isAdmin = currentUser.role === 'Admin';
-  const isPeopleTeam = currentUser.role === 'Admin' || currentUser.role === 'HR';
   const isOwner = profile.employeeId === (currentUser.employeeId || currentUser.loginId);
-  const canEditProfile = isPeopleTeam || isOwner;
+  const canEditProfile = isOwner;
   const [activeTab, setActiveTab] = useState('Resume');
   const [toast, setToast] = useState('');
   const [avatarPreview, setAvatarPreview] = useState(profile.avatar || avatarFor(profile.name));
@@ -156,16 +155,19 @@ export default function Profile({ currentUser = {}, employee = null, onBack, onL
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [salaryConfig, setSalaryConfig] = useState(defaultSalaryConfig);
   const targetId = profile.id || currentUser.id || 'me';
+  const storageKey = `profile:${profile.employeeId}`;
 
   const tabs = ['Resume', 'Private Information', 'Security', ...(isAdmin ? ['Salary Information'] : [])];
   const updateResume = (key, value) => setResume((current) => ({ ...current, [key]: value }));
   const updatePrivate = (key, value) => setPrivateInfo((current) => ({ ...current, [key]: value }));
 
   useEffect(() => {
-    if (profile.resume) setResume((current) => ({ ...current, ...profile.resume }));
-    if (profile.privateInfo) setPrivateInfo((current) => ({ ...current, ...profile.privateInfo }));
-    if (profile.avatar) setAvatarPreview(profile.avatar);
-  }, [profile.avatar, profile.privateInfo, profile.resume]);
+    const savedProfile = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    if (savedProfile.resume || profile.resume) setResume((current) => ({ ...current, ...(profile.resume || {}), ...(savedProfile.resume || {}) }));
+    if (savedProfile.privateInfo || profile.privateInfo) setPrivateInfo((current) => ({ ...current, ...(profile.privateInfo || {}), ...(savedProfile.privateInfo || {}) }));
+    if (savedProfile.avatar || profile.avatar) setAvatarPreview(savedProfile.avatar || profile.avatar);
+    if (savedProfile.salaryConfig) setSalaryConfig((current) => ({ ...current, ...savedProfile.salaryConfig }));
+  }, [profile.avatar, profile.privateInfo, profile.resume, storageKey]);
 
   const handleAvatar = (event) => {
     const file = event.target.files?.[0];
@@ -184,6 +186,22 @@ export default function Profile({ currentUser = {}, employee = null, onBack, onL
   };
 
   const save = async (payload, successMessage) => {
+    const localPayload = {
+      resume,
+      privateInfo,
+      avatar: avatarPreview,
+      salaryConfig,
+      ...JSON.parse(localStorage.getItem(storageKey) || '{}'),
+      ...(payload.resume ? { resume: payload.resume } : {}),
+      ...(payload.privateInfo ? { privateInfo: payload.privateInfo } : {}),
+      ...(payload.salaryConfig ? { salaryConfig: payload.salaryConfig } : {}),
+      ...(avatarPreview ? { avatar: avatarPreview } : {}),
+    };
+    localStorage.setItem(storageKey, JSON.stringify(localPayload));
+    if (isOwner) {
+      localStorage.setItem('userInfo', JSON.stringify({ ...currentUser, avatar: avatarPreview, resume: localPayload.resume, privateInfo: localPayload.privateInfo }));
+    }
+
     try {
       const response = await fetch(`${API_URL}/api/auth/employees/${targetId}`, {
         method: 'PUT',
@@ -198,7 +216,7 @@ export default function Profile({ currentUser = {}, employee = null, onBack, onL
       }
       setToast(successMessage);
     } catch (error) {
-      setToast(error.message);
+      setToast(`${successMessage} Saved locally. Backend note: ${error.message}`);
     }
   };
 
@@ -278,7 +296,7 @@ export default function Profile({ currentUser = {}, employee = null, onBack, onL
             </>
           )}
 
-          {activeTab === 'Security' && (
+          {activeTab === 'Security' && isOwner && (
             <div className="ems-security-layout">
               <form className="ems-card subtle" onSubmit={changePassword}>
                 <h2>Change Password</h2>
@@ -296,7 +314,16 @@ export default function Profile({ currentUser = {}, employee = null, onBack, onL
             </div>
           )}
 
-          {activeTab === 'Salary Information' && isAdmin && <SalaryTab config={salaryConfig} setConfig={setSalaryConfig} />}
+          {activeTab === 'Security' && !isOwner && (
+            <div className="ems-empty">Security settings are private to the employee account owner.</div>
+          )}
+
+          {activeTab === 'Salary Information' && isAdmin && (
+            <>
+              <SalaryTab config={salaryConfig} setConfig={setSalaryConfig} />
+              <button className="ems-primary" onClick={() => save({ salaryConfig }, 'Salary configuration saved successfully.')}>Save Salary</button>
+            </>
+          )}
         </section>
       </main>
     </div>
