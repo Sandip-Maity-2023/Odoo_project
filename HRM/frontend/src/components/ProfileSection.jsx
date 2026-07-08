@@ -29,10 +29,11 @@ export default function ProfileSection({ user, onProfileUpdated }) {
 
     if (avatarFile) dataToSend.append('avatarFile', avatarFile);
     if (resumeFile) dataToSend.append('resumeFile', resumeFile);
-
+   
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/profile/update', { 
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${baseUrl}/api/profile/update`, { 
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`
