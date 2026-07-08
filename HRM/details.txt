@@ -11,4 +11,11 @@ npm init -y
 npm install express mongoose dotenv cors
 npm install jsonwebtoken
 
+in render:https://odoo-project-1.onrender.com
+root directory: HRM/backend
+build command : npm install
+start command: npm start
+
+
+
 
