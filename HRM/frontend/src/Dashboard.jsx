@@ -33,6 +33,7 @@ const toMonthValue = (date = new Date()) => date.toISOString().slice(0, 7);
 const hoursLabel = (value = 0) => `${Number(value).toFixed(2)}h`;
 const attendanceStatuses = ['Present', 'Late', 'Half Day', 'Leave', 'Holiday', 'Weekend', 'Absent'];
 const attendanceStatusClass = (status) => `ems-attendance-status ${String(status).toLowerCase().replace(/\s+/g, '-')}`;
+const isPendingLeave = (status) => String(status || '').trim().toLowerCase() === 'pending';
 
 const makeAttendanceRows = (employees) => {
   const baseDates = ['2026-07-01', '2026-07-02', '2026-07-03', '2026-07-04', '2026-07-05', '2026-07-06', '2026-07-07', '2026-07-08', '2026-07-09', '2026-07-10'];
@@ -591,8 +592,8 @@ function TimeOffView({ currentUser, employees = [], leaves = [], allocations = [
                   {pageRows.map((leave) => (
                     <tr key={leave.id}>
                       {canApproveLeave && <><td>{leave.name}</td><td>{leave.employeeId}</td><td>{leave.department}</td></>}
-                      <td>{leave.type}</td><td>{leave.start}</td><td>{leave.end}</td><td>{leave.days}</td><td>{leave.type === 'Unpaid Leave' ? 'Unlimited' : balanceFor(leave.type, leave.employeeId)}</td><td><span className={`ems-leave-badge ${leave.status.toLowerCase()}`}>{leave.status}</span></td><td>{leave.appliedDate}</td><td>{leave.remarks}</td><td>{leave.attachmentName || leave.attachmentUrl ? <a className="ems-doc-link" href={leave.attachmentUrl || '#'} target="_blank" rel="noreferrer">{leave.attachmentName || 'View document'}</a> : 'No document'}</td>
-                      <td>{leave.status === 'Pending' ? (canApproveLeave ? <div className="ems-row-actions"><button onClick={() => onUpdateLeaveStatus(leave.id, 'Approved')}>Approve</button><button onClick={() => onUpdateLeaveStatus(leave.id, 'Rejected')}>Reject</button></div> : <button className="ems-secondary" onClick={() => onCancelLeave(leave.id)}>Cancel</button>) : 'View'}</td>
+                      <td>{leave.type}</td><td>{leave.start}</td><td>{leave.end}</td><td>{leave.days}</td><td>{leave.type === 'Unpaid Leave' ? 'Unlimited' : balanceFor(leave.type, leave.employeeId)}</td><td><span className={`ems-leave-badge ${String(leave.status || '').toLowerCase()}`}>{leave.status}</span></td><td>{leave.appliedDate}</td><td>{leave.remarks}</td><td>{leave.attachmentName || leave.attachmentUrl ? <a className="ems-doc-link" href={leave.attachmentUrl || '#'} target="_blank" rel="noreferrer">{leave.attachmentName || 'View document'}</a> : <span className="ems-muted">No document uploaded</span>}</td>
+                      <td>{isPendingLeave(leave.status) ? (canApproveLeave ? <div className="ems-row-actions"><button onClick={() => onUpdateLeaveStatus(leave.id, 'Approved')}>Approve</button><button onClick={() => onUpdateLeaveStatus(leave.id, 'Rejected')}>Reject</button></div> : <button className="ems-secondary" onClick={() => onCancelLeave(leave.id)}>Cancel</button>) : <span className="ems-muted">Reviewed</span>}</td>
                     </tr>
                   ))}
                 </tbody>
