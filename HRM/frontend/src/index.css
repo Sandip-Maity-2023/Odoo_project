@@ -14,6 +14,8 @@ body {
   margin: 0;
 }
 
+/* Auth.jsx css file */
+
 .auth-shell {
   min-height: 100vh;
   display: grid;
@@ -42,8 +44,8 @@ body {
 }
 
 .auth-logo {
-  width: 148px;
-  height: 58px;
+  width: 150px;
+  height: 60px;
   object-fit: contain;
 }
 
@@ -94,7 +96,7 @@ body {
   padding: 7px 10px;
   color: #6d28d9;
   background: #f3e8ff;
-  font-size: 12px;
+  font-size: 20px;
   font-weight: 800;
   cursor: pointer;
 }
@@ -130,7 +132,7 @@ body {
 .text-link {
   border: 0;
   background: transparent;
-  color: #6d28d9;
+  color: #6b2dcf;
   font-weight: 800;
   cursor: pointer;
 }
@@ -199,6 +201,7 @@ body {
     border-radius: 14px;
   }
 }
+
 
 .ems-shell {
   min-height: 100vh;
