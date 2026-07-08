@@ -38,6 +38,8 @@ const serializeLeave = (leave) => ({
   status: leave.status,
   appliedDate: dateKey(leave.appliedDate || leave.createdAt),
   approvalRemarks: leave.approvalRemarks,
+  attachmentName: leave.attachment?.fileName || '',
+  attachmentUrl: leave.attachment?.data ? `data:${leave.attachment.mimeType};base64,${leave.attachment.data}` : '',
   attachment: leave.attachment?.data ? {
     fileName: leave.attachment.fileName,
     mimeType: leave.attachment.mimeType,
