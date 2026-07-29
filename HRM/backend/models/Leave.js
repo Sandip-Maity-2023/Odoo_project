@@ -12,7 +12,7 @@ const leaveSchema = new mongoose.Schema({
   reason: { type: String, required: true },
   attachment: {
     fileName: String,
-    mimeType: String,
+    mimeType: String,     //multipurpose internet mail extensions (MIME) is an internet standard that extends the format of email to support text in character sets other than ASCII, as well as attachments of audio, video, images, and application programs
     data: String,
   },
   status: { type: String, enum: ['Pending', 'Approved', 'Rejected', 'Cancelled'], default: 'Pending' },

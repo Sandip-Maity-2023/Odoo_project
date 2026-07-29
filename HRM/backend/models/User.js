@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  company_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
+  company_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },  //In Mongoose, ref: 'Company' tells the schema that the company_id field holds an ObjectId which points to a document in the Company collection, allowing you to use .populate() to fetch full company details later.
   login_id: { type: String, unique: true, required: true },
   employeeId: { type: String, unique: true, required: true },
   first_name: { type: String, required: true, trim: true },
@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema({
       mimeType: String,
       fileName: String,
     },
-    resume: mongoose.Schema.Types.Mixed,
+    resume: mongoose.Schema.Types.Mixed,      //In Mongoose, mongoose.Schema.Types.Mixed is an "anything goes" data type used to store flexible, unstructured data that bypasses strict schema validation
     privateInfo: mongoose.Schema.Types.Mixed,
     address: String,
     manager: String,
@@ -46,6 +46,6 @@ const userSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now },
 }, { timestamps: true });
 
-userSchema.index({ company_id: 1, joining_year: 1, serial_number: 1 }, { unique: true });
+userSchema.index({ company_id: 1, joining_year: 1, serial_number: 1 }, { unique: true });  //This MongoDB index definition creates a compound unique index on the users collection using Mongoose
 
 module.exports = mongoose.model('User', userSchema);
