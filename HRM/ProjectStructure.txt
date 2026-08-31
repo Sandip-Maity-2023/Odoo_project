@@ -1,3 +1,10 @@
 Database:
 https://share.gemini.google/qu35rvmY8xuR
 
+leave Allocation
+leave 
+check
+
+login, sign Up
+check 
+both in auth.jsx
