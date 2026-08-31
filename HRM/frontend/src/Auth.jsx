@@ -248,14 +248,15 @@
 
 
 import React, { useMemo, useState, useEffect } from 'react';
-import logo from './assets/odoo_img.png';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import './Auth.css'; // Import the CSS file for styling
+import './Auth.css';
+
+// Fallback logo if local asset path fails
+import defaultLogo from './assets/odoo_img.png'; 
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const passwordRule = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
-// Sample images for the right-side carousel (Replace URLs with your actual image paths/imports)
 const CAROUSEL_SLIDES = [
   {
     image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=1200',
@@ -275,12 +276,13 @@ const CAROUSEL_SLIDES = [
   {
     image: 'https://cdn.phototourl.com/free/2026-08-31-32e40c8c-1d80-4ae5-9e7f-329826440486.jpg',
     title: 'Stay Updated',
-    description:'check your details and update your profile information easily.',
-  },{
-    image:'https://cdn.phototourl.com/free/2026-08-31-7b9568db-01dc-4e08-b7b0-2fec3e0f6bef.jpg',
-    title:'Good Morning! Afternoon! Evening! Night! According to your time zone, we wish you a great day ahead.',
-    description:'Connect- Collaborate- Learn- Grow. We are here to support your academic journey every step of the way.',
-  }
+    description: 'Check your details and update your profile information easily.',
+  },
+  {
+    image: 'https://cdn.phototourl.com/free/2026-08-31-7b9568db-01dc-4e08-b7b0-2fec3e0f6bef.jpg',
+    title: 'Greetings!',
+    description: 'Connect - Collaborate - Learn - Grow. We are here to support your journey every step of the way.',
+  },
 ];
 
 const emptySignup = {
@@ -316,7 +318,6 @@ export default function Auth({ onLogin = () => {} }) {
   const [signUpData, setSignUpData] = useState(emptySignup);
   const [resetData, setResetData] = useState({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
 
-  // Slide Index State for Right-Side Banner
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
@@ -364,6 +365,13 @@ export default function Auth({ onLogin = () => {} }) {
       setSignUpData((current) => ({ ...current, companyLogo: { data, mimeType: file.type, fileName: file.name } }));
     };
     reader.readAsDataURL(file);
+  };
+
+  const switchMode = (newMode) => {
+    setMode(newMode);
+    setToast(null);
+    setShowPassword(false);
+    setShowConfirmPassword(false);
   };
 
   const handleLoginSubmit = async (event) => {
@@ -440,7 +448,7 @@ export default function Auth({ onLogin = () => {} }) {
         {/* Left Form Section */}
         <section className="auth-card">
           <div className="auth-logo-wrap">
-            <img src={logoPreview || logo} alt="Company logo" className="auth-logo" />
+            <img src={logoPreview || defaultLogo} alt="Company logo" className="auth-logo" />
           </div>
 
           <h2 className="auth-heading">
@@ -463,7 +471,7 @@ export default function Auth({ onLogin = () => {} }) {
                 </div>
               </label>
               <button className="primary-btn" disabled={loading}>{loading && <Spinner />} SIGN IN</button>
-              <button type="button" className="text-link" onClick={() => { setMode('signup'); setToast(null); }}>Don't have an Account? Sign Up</button>
+              <button type="button" className="text-link" onClick={() => switchMode('signup')}>Don't have an Account? Sign Up</button>
             </form>
           )}
 
@@ -477,7 +485,7 @@ export default function Auth({ onLogin = () => {} }) {
               <label>Password<div className="password-row"><input type={showPassword ? 'text' : 'password'} value={signUpData.password} onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })} required /><EyeButton visible={showPassword} onClick={() => setShowPassword((v) => !v)} /></div></label>
               <label>Confirm Password<div className="password-row"><input type={showConfirmPassword ? 'text' : 'password'} value={signUpData.confirmPassword} onChange={(e) => setSignUpData({ ...signUpData, confirmPassword: e.target.value })} required /><EyeButton visible={showConfirmPassword} onClick={() => setShowConfirmPassword((v) => !v)} /></div></label>
               <button className="primary-btn" disabled={loading}>{loading && <Spinner />} SIGN UP</button>
-              <button type="button" className="text-link" onClick={() => { setMode('login'); setToast(null); }}>Already have an account ? Sign In</button>
+              <button type="button" className="text-link" onClick={() => switchMode('login')}>Already have an account? Sign In</button>
             </form>
           )}
 
