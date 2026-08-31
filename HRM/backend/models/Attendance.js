@@ -42,6 +42,11 @@ const attendanceSchema = new mongoose.Schema({
   }]
 }, { timestamps: true });
 
-attendanceSchema.index({ userId: 1, date: 1 }, { unique: true });
+//Timestamps: { timestamps: true } automatically adds createdAt and updatedAt fields to every document.
+
+attendanceSchema.index({ userId: 1, date: 1 }, { unique: true });  //ensures that a user can only have one attendance record per day
 
 module.exports = mongoose.model('Attendance', attendanceSchema);
+
+//correction: Handles requests to fix attendance records, including who requested it, the reason, its status ('Pending', 'Approved', 'Rejected'), and the reviewer.
+//auditTrail: An array logging changes made to the record, including the action, who made it, when, and any notes.
