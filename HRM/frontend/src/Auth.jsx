@@ -249,7 +249,7 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import './Auth.css';
+import './auth.css';
 
 // Fallback logo if local asset path fails
 import defaultLogo from './assets/odoo_img.png'; 
