@@ -531,37 +531,31 @@ Set `VITE_API_URL` to the Render backend origin. The previously recorded fronten
 - Base64 file storage increases document and response sizes; a managed object-storage service is a future improvement for larger files.
 - `express.json` accepts request bodies up to 10 MB; individual company-logo validation remains limited to 1 MB.
 
-## Troubleshooting
+Login:
+Password:
 
-### `Database is not connected`
+ADARSA20260004
+Hr@df13ddc18fA1
 
-Check `MONGO_URI`, MongoDB network access, credentials, and whether the database service is running. The backend exits during startup if the connection cannot be established.
+Login ID: ADTABA20260005
+Temporary Password: Hr@7ad715b5e1A1
+tanmoy
 
-### CORS error in the browser
+Login ID: ADSKFA20260006
+Temporary Password: Hr@bab42ed15dA1
+Nahid
 
-Ensure the browser origin is present in the comma-separated backend `CORS_ORIGIN` value. Use the exact scheme and host, for example `http://localhost:5173` or `https://hrm-ochre-eta.vercel.app`.
+Login ID: ADSOGH20260007
+Temporary Password: Hr@1ab9ae25a9A1
+sounak
 
-### Requests go to the wrong API
+Login ID: ADJYDA20260008
+Temporary Password: Hr@6006de36ecA1
+jyo
 
-Check `frontend/.env` and `VITE_API_URL`. Restart Vite after changing environment variables because Vite injects them at build/start time.
+Login ID: ADSUMO20260009
+Temporary Password: Hr@00e6e7d3c7A1
+suman
 
-### `Token failed` or unexpected logout
-
-Access tokens expire by design. Use the refresh-token endpoint or sign in again. Check that `JWT_SECRET` is stable between backend restarts and that frontend token keys have not been overwritten.
-
-### Render service cannot start
-
-Confirm the Render root directory is `backend`, the start command is `npm start`, and all required environment variables are configured as secrets.
-
-## Known implementation notes
-
-- The source contains some early/legacy UI components alongside the current application flow. Treat `App.jsx`, `Auth.jsx`, `Dashboard.jsx`, and the active pages/components as the runtime entry points when making changes.
-- The frontend contains a local leave-document metadata fallback in `localStorage`; the authoritative leave request and status data comes from the backend.
-- Salary values shown in the profile screen are frontend calculations and are not persisted as a payroll transaction.
-- Leave holidays are currently hard-coded in `backend/controllers/leaveController.js`; a configurable holiday calendar would be required for production-grade multi-company use.
-- There is no migration framework or seed script. Mongoose creates/updates collections and indexes when the relevant models are used.
-- There is no automated backend test suite yet. Adding controller, authorization, and calculation tests is recommended before expanding the production feature set.
-
-## License
-
-No license file is currently included in the repository. Add a license before distributing the project outside its intended organization.
+ADSUMO20260009
+Sandip@2004
