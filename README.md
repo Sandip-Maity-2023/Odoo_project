@@ -4,7 +4,7 @@ HRM is a web-based employee management application for company administration, e
 
 ## Contents
 
-- [1. Product scope](#product-scope)
+- [1. Product scope & Objectives](#product-scope)
 - [2. Architecture](#architecture)
 - [3. Repository structure](#repository-structure)
 - [4. Technology stack](#technology-stack)
@@ -18,8 +18,6 @@ HRM is a web-based employee management application for company administration, e
 - [12. Development workflow](#development-workflow)
 - [13. Deployment](#deployment)
 - [14. Security and operational notes](#security-and-operational-notes)
-- [15. Troubleshooting](#troubleshooting)
-- [16. Known implementation notes](#known-implementation-notes)
 
 ## Product scope
 
@@ -508,26 +506,13 @@ The frontend is deployed as a Vite static site:
 
 Set `VITE_API_URL` to the Render backend origin. The previously recorded frontend URL is `https://hrm-ochre-eta.vercel.app`.
 
-### Deployment checklist
-
-- Configure production MongoDB access and network allow-listing.
-- Generate separate high-entropy JWT secrets.
-- Set the production frontend URL in backend `CORS_ORIGIN`.
-- Set the backend URL in frontend `VITE_API_URL`.
-- Confirm `GET /` returns the backend health message.
-- Register a test company and verify login, employee creation, attendance, and leave flows.
-- Review browser and Render logs for CORS, database, and token errors.
-
 ## Security and operational notes
 
 - Passwords are hashed with `bcryptjs`; plaintext passwords should not be stored or logged.
 - Protected responses exclude password hashes, temporary passwords, and refresh-token arrays.
 - CORS allows only origins listed in `CORS_ORIGIN`.
 - Login requests are limited to eight attempts per IP in a rolling 15-minute in-memory window.
-- Responses include `X-Content-Type-Options`, `X-Frame-Options`, and `Referrer-Policy` headers.
-- MongoDB queries for employee, attendance, and leave operations are scoped to the authenticated user's company.
-- Do not use the example values in `.env.example` in production.
-- The login limiter is process-local. For multiple backend instances, use a shared rate-limit store.
+
 - Base64 file storage increases document and response sizes; a managed object-storage service is a future improvement for larger files.
 - `express.json` accepts request bodies up to 10 MB; individual company-logo validation remains limited to 1 MB.
 
